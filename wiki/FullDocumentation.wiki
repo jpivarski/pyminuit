@@ -1,0 +1,21 @@
+#summary PyMinuit Documentation
+#labels User-Documentation,Featured
+
+= Contents =
+   * GettingStartedTutorial
+   * FunctionReference
+
+== What Minuit can do ==
+
+Given an arbitrary numerical function of _N_ variables, Minuit searches the parameter space for the minimum value of that function.  This represents a very broad class of applications, but most often, Minuit is used to fit theoretical curves to experimental data.
+
+In addition to finding the minimum, Minuit computes a great deal of information about the region surrounding that minimum, such as the covariance matrix, the second derivative at the minimum in all _N_ dimensions.  In curve-fitting applications, this covariance matrix expresses the uncertainty in the parameters of the fit.  Because the region close to the minimum may be only approximately paraboloid, Minuit can also climb the sides of the well and calculate exact error bounds, presenting the results in one or two dimensions.
+
+== What !PyMinuit can do ==
+
+Users of high-energy physics programs like !ROOT, !PAW, mn_fit, and !HippoDraw have probably accessed Minuit through the curve-fitting utilities.  In some of these programs, it is possible to access Minuit directly, but not easily.  (Sorry, everyone disagrees about what "easy" and "simple" mean.)  !PyMinuit provides access to Minuit's low-level minimization routines in a high-level programming environment, Python.
+ 
+ 
+ 
+ 
+ 
