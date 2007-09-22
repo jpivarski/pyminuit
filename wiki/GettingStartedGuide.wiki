@@ -209,10 +209,52 @@ It's also sometimes interesting to see the correlation matrix, which is normaliz
 
 = Non-linear error measurement =
 
+When a function is not parabolic near its minimum, the errors from the second derivative (which are quadratic at heart) may not be representative.  In that case, we use the `minos()` algorithm to measure 1-sigma devitions by explicitly calculating the function away from the minimum.
+{{{
+>>> m = minuit.Minuit(lambda x: x**4)
+>>> m.migrad()
+>>> m.hesse()
+>>> m.errors["x"]
+48.82085066828526
+>>> m.minos()
+>>> m.merrors["x", 1]
+1.0007813246693986
+}}}
+
+Errors calculated by `minos()` go into the `merrors` attribute, rather than `errors`.  They are indexed by parameter and the number of sigmas in each direction, because the errors are not necessarily symmetric.
+{{{
+>>> m = minuit.Minuit(lambda x: x**4 + x**3)
+>>> m.migrad()
+VariableMetricBuilder: matrix not pos.def.
+gdel > 0: 0.0604704
+gdel: -0.00686919
+>>> m.minos()
+>>> m.merrors["x", -1], m.merrors["x", 1]
+(-0.60752321396926234, 1.5429599172115098)
+}}}
+
+You can also calculate `minos()` errors an arbitrary number of sigmas from the minimum.
+{{{
+>>> m.minos("x", 2)
+>>> m.merrors
+{('x', 2.0): 1.9581663883782807, ('x', -1.0): -0.60752321396926234, ('x', 1.0): 1.5429599172115098}
+}}}
+This can be useful for 90%, 95%, and 99% confidence levels.
+
+= Drawing contour curves =
+
+There's a 2-dimensional equivalent of `minos()` errors: contour lines in two parameters.
 
 
 
 
 
+
+
+
+
+
+
+ 
  
  
