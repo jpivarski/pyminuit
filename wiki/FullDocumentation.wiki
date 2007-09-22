@@ -1,6 +1,4 @@
-#summary PyMinuit Documentation
 #labels User-Documentation,Featured
-
 = Contents =
    * GettingStartedTutorial
    * FunctionReference
@@ -33,6 +31,7 @@ Through !PyMinuit, you can
   * Set limits on the number of allowed function calls, the tolerance, the Minuit strategy number (0, 1, 2), the `up` parameter (1 for chi^2^, 1/2 for -log likelihood), and access the function value, number of calls in the last command, and estimated distance to the minimum.
 
 
+ 
  
  
  
