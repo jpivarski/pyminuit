@@ -147,6 +147,8 @@ This function sets the following
 || `merrors` || dictionary from parameter-number of sigma pairs to the MINOS result ||
 || `ncalls` || number of times the function was called by MINOS; known as NFCN in FORTRAN Minuit ||
 
+Note that `migrad` does _not_ change the `errors` attribute.  You can keep track of both error estimations.
+
 If MINOS finds a new minimum, it will raise a `MinuitError` exception with a message of the form
 {{{
 "Discovered a new minimum at %s = %g"
@@ -174,7 +176,6 @@ This function's behavior is affected by
 || `printMode` || 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step ||
 
 Rather than setting Minuit object attributes to communicate the result, this function returns a list of 2-tuples: points in `param1`-`param2` space corresponding to the contour line.  You can pass such a curve to your favorite plotting package.  It does, however, set the `ncalls` attribute.
-|| `ncalls` || number of times the function was called by CONTOUR; known as NFCN in FORTRAN Minuit ||
 
 === scan((param, bins, low, high), ...[, corners[, output]]) ===
 
@@ -288,27 +289,58 @@ To access the covariance (or correlation) in matrix form, see the `matrix()` fun
 
 === merrors ===
 
+A dictionary mapping parameter-sigmas pairs to `minos` results.  This attribute is read-only, and will be `None` before `minos` is run.  It is cumulative, containing all MINOS errors calculated so far.  For instance,
+{{{
+>>> m.minos()
+>>> m.merrors
+{('y', 1.0): 1.0, ('y', -1.0): -1.0, ('x', -1.0): -1.0, ('x', 1.0): 1.0}
+>>> m.minos("y", 2)
+>>> m.merrors
+{('y', 1.0): 1.0, ('y', -1.0): -1.0, ('x', -1.0): -1.0, ('x', 1.0): 1.0, ('y', 2.0): 2.0}
+}}}
+
 === ncalls ===
+
+The number of calls made by the previous Minuit algorithm, assuming that it did not fail with an exception.  It is read-only, and will be 0 before any algorithms have been run.
 
 === edm ===
 
+The estimated vertical distance from the minimum, where "vertical" means the space of function output values.  The definition of a successful minimization is one in which `edm` is less than `0.001*tol*up`.
+
 == Minuit user settings ==
+
+These Minuit object attributes are set only by the user and control the function of the Minuit algorithms.
 
 === fixed ===
 
+A dictionary mapping parameter names to `True` or `False`.  If `True`, the parameter will be held constant during all operations: minimization and error measurements.  By default, all parameters float (`fixed["param"] = False`).
+
 === limits ===
+
+A dictionary mapping parameter names to (low, high) pairs or `None`.  Minuit will not allow a parameter value to float outside this range during any operation: minimization or error measurements.  By default, all parameters have no limits (`limits["param"] = None`).
 
 === maxcalls ===
 
+The maximum number of function calls Minuit is allowed to apply to find the minimum or measure an error.  If `None` (the default), Minuit call the function as often as it likes.
+
 === tol ===
+
+The numerical tolerance, by default 0.1.  Minimization is successful when the estimated vertical distance to the minimum is `0.001*tol*up`, in other words, a hundredth of a percent of the physical error on the parameter.
 
 === strategy ===
 
+An integer which tells Minuit how hard to work when it searches for a minimum.  A value of 0 is a fast search, in which Minuit is more scrupulous about minimizing function calls.  A value of 1 is the default, and a value of 2 is the most thorough: the most accurate results and the largest number of function calls.
+
 === up ===
 
+The `up` parameter represents the vertical distance corresponding to one sigma errors.  In statistics applications, `up=1` is appropriate for chi^2^ fits and `up=0.5` is for negative log likelihood fits.
+
 === printMode ===
- 
- 
+
+
+
+
+
  
  
  
