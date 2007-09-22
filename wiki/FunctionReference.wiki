@@ -73,12 +73,51 @@ To limit the domain of some parameters, prepend the parameter names with `limit_
 {{{
 >>> m = minuit.Minuit(f, limit_x=(3, 4), limit_y=(5, 1e12))
 >>> m.limits
-{'y': (5.0, 1e12), 'x': (3.0, 4.0)}
+{'y': (5.0, 1000000000000.0), 'x': (3.0, 4.0)}
 }}}
 
 === migrad() ===
 
+Runs Minuit's famous MIGRAD algorithm, an optimized gradient-based minimum search.  This function's behavior is affected by
+|| `values` || initial starting values ||
+|| `errors` || initial step sizes ||
+|| `fixed` || parameters held constant ||
+|| `limits` || (low, high) limits on parameter domain ||
+|| `maxcalls` || maximum allowed number of calls (or `None`) ||
+|| `tol` || tolerance: minimization succeeds when `edm` is less than `0.001*tol*up` ||
+|| `strategy` || 0 = fast, 1 = default, 2 = thorough ||
+|| `up` || scale factor for 1-sigma errors (1 for chi^2^, 0.5 for -log likelihood) ||
+|| `printMode` || 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step ||
+
+This function sets the following
+|| `values` || parameter values which minimize the function ||
+|| `errors` || variations in parameters which raise the function value by `up` ||
+|| `covariance` || the full covariance matrix (second derivative) at the minimum ||
+|| `fval` || function value at the minimum ||
+|| `ncalls` || number of times the function was called by MIGRAD; known as NFCN in FORTRAN Minuit ||
+|| `edm` || estimated vertical distance to the minimum ("vertical" refers to the space of function output values) ||
+
+The `minos()` function does not guarantee the correctness of `errors` and `covariance`: they are taken from the best-fit paraboloid in the last step of minimization.  For careful error estimates, call `hesse()`.
+
 === hesse() ===
+
+Run's Minuit's HESSE algorithm for calculating a Hessian covariance matrix of second derivatives at the current parameter values.  If applied after `migrad()`, these are the values needed to raise the function's value by one sigma (defined by `up`).
+
+This function's behavior is affected by
+|| `values` || point in parameter space at which to calculate the covariance matrix ||
+|| `errors` || initial step sizes ||
+|| `fixed` || parameters held constant (not included in covariance) ||
+|| `limits` || (low, high) limits on parameter domain ||
+|| `maxcalls` || maximum allowed number of calls (or `None`) ||
+|| `tol` || tolerance for numerical precision ||
+|| `strategy` || 0 = fast, 1 = default, 2 = thorough ||
+|| `up` || scale factor for 1-sigma errors (1 for chi^2^, 0.5 for -log likelihood) ||
+|| `printMode` || 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step ||
+
+This function sets the following
+|| `errors` || variations in parameters which raise the function value by `up` ||
+|| `covariance` || the full covariance matrix (second derivative) at the minimum ||
+|| `ncalls` || number of times the function was called by MIGRAD; known as NFCN in FORTRAN Minuit ||
 
 === minos() or minos(param, sigmas) ===
 
@@ -125,6 +164,7 @@ To limit the domain of some parameters, prepend the parameter names with `limit_
 === up ===
 
 === printMode ===
+ 
  
  
  
