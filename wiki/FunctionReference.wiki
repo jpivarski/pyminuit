@@ -3,9 +3,78 @@
 
 === machine_precision() ===
 
+Returns the numerical precision of your computer (for the C type `double`).  This function was called EPS in the old FORTRAN Minuit.  Here's how many significant digits to trust in a calculation:
+{{{
+>>> import minuit, math
+>>> -math.log10(minuit.machine_precision())
+15.051499783199059
+}}}
+minus a few (for the cumulative effects of round-off errors) is about 12 or 13.
+
+=== Minuit ===
+
+minuit.Minuit is a new Python type that represents the state of a minimization procedure.  You create it by giving it an objective function, and then call Minuit commands to minimize and calculate error bounds, etc.  Minimization depends on the initial state, so repeated invocations of the algorithms can lead to different results.
+
+The Minuit object has a small number of functions, and communicates through its member attributes.  Some of these attributes are read-only fit results and others are editable user settings.
+
 == Minuit member functions ==
 
 === Constructor: Minuit(function[, starting-values...]) ===
+
+To create a Minuit object, you must pass it a Python function.  Python functions may be defined in two ways:
+  * as an inline lambda expression,
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2)
+}}}
+
+  * or as a multi-line function with the full Python syntax.
+{{{
+>>> def f(x, y):
+...     if 0.5 < x < 0.6: raise Exception
+...     return x**2 + y**2
+... 
+>>> m = minuit.Minuit(f)
+}}}
+The former is quicker to type and the latter offers more flexibility.
+
+The function is stored as `m.fcn` and the parameter names as a tuple attribute `m.parameters` (assuming the Minuit object is called `m`.).  They are constants and cannot be changed (without creating a new Minuit object).
+
+You can also pass initial values in the Minuit constructor as Python keyword arguments.  For instance,
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2, x=5, y=5)
+}}}
+would start both parameters with values of 5.  The values are stored in a dictionary attribute `m.values`.
+{{{
+>>> m.values["x"], m.values["y"]
+(5.0, 5.0)
+>>> m.values["x"] = 6
+>>> m.values
+{'y': 5.0, 'x': 6.0}
+}}}
+
+Initial parameter errors are interpreted as starting step-sizes for the minimum search.  You can set them in the constructor by prepending each parameter name with `err_`.
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2, x=5, y=5, err_x=1, err_y=1)
+>>> m.errors["x"], m.errors["y"]
+(1.0, 1.0)
+}}}
+
+The most important thing for finding the correct function minimum is to intelligently set the parameter errors.  For instance, in a Gaussian fit, it can be very helpful to set the area, centroid, and sigma to the histogram integral, mean, and standard deviation before fitting.
+
+To fix some parameters, that is, refuse to let them vary in the minimization, in the constructor, prepend the parameter names with `fix_`.
+{{{
+>>> m = minuit.Minuit(f, fix_x=True, fix_y=False)
+>>> m.fixed
+{'y': False, 'x': True}
+}}}
+By default, parameters are not fixed.
+
+To limit the domain of some parameters, prepend the parameter names with `limit_` and pass a (low, high) pair.
+{{{
+>>> m = minuit.Minuit(f, limit_x=(3, 4), limit_y=(5, 1e12))
+>>> m.limits
+{'y': (5.0, 1e12), 'x': (3.0, 4.0)}
+}}}
 
 === migrad() ===
 
@@ -19,11 +88,17 @@
 
 === matrix([correlation[, skip_fixed]]) ===
 
-== Read-only Minuit member data ==
+== Minuit constants ==
 
 === fcn ===
 
 === parameters ===
+
+== Minuit results ==
+
+=== values ===
+
+=== errors ===
 
 === fval ===
 
@@ -35,11 +110,7 @@
 
 === edm ===
 
-== Read-write Minuit member data ==
-
-=== values ===
-
-=== errors ===
+== Minuit user settings ==
 
 === fixed ===
 
@@ -54,5 +125,7 @@
 === up ===
 
 === printMode ===
+ 
+ 
  
  
