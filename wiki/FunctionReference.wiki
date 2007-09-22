@@ -1,4 +1,4 @@
-#labels User-Documentation
+#labels User-Documentation,Featured
 == minuit module ==
 
 === machine_precision() ===
@@ -53,5 +53,6 @@
 
 === up ===
 
-=== !printMode ===
+=== printMode ===
+ 
  
