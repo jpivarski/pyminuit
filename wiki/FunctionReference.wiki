@@ -178,11 +178,52 @@ Rather than setting Minuit object attributes to communicate the result, this fun
 
 === scan((param, bins, low, high), ...[, corners[, output]]) ===
 
+The `scan` function does not call any Minuit functions; it is implemented in !PyMinuit.  It calculates function values along a lattice in parameter space.  This is a very expensive operation if the objective function is slow to compute, but it can be helpful in finding starting values to seed the minimization.  The argument list consists of a variable number of 4-tuples, each of which represents a parameter to vary.
+|| `param` || the parameter name ||
+|| `bins` || the number of subdivisions to evaluate ||
+|| `low` || the low edge of the region to evaluate ||
+|| `high` || the high edge of the region to evaluate ||
+
+For example,
+{{{
+>>> m.scan(("x", 10, 0, 1), ("y", 5, -20, 20))
+}}}
+scans a rectangle 10-bins wide in `"x"` from `x=0` to `x=1` and 5-bins wide in `"y"` from `y=-20` to `y=20`, for a total of 10 times 5 = 50 function evaluations.  This function sets two Minuit object attributes.
+|| `values` || parameter values which minimize the function ||
+|| `fval` || function value at the minimum ||
+
+Two arguments can be passed as keyword arguments to the function.
+|| `corners` || (default is `False`) if `True`, calculate the left edges of each bin, rather than the centers ||
+|| `output` || (default is `True`) if `False`, suppress output ||
+
+By default, this function outputs a list-of-lists of evaluated function values which can be plotted as a density map in your favorite plotting package.
+
 === matrix([correlation[, skip_fixed]]) ===
+
+The `migrad()` and `hesse()` functions set the `covariance` attribute as a dictionary of parameter name pairs to matrix elements so that the user can safely find off-diagonal elements by parameter name, rather than by index.  But sometimes, it is useful to have the covariance matrix in the traditional form: a square array of numbers.  This function formats the covariance matrix as a tuple-of-tuples and returns it: no Minuit object attributes are modified.
+
+Two parameters are optional.
+|| `correlation` || (default is `False`) if `True`, calculate the correlation matrix instead of the covariance matrix ||
+|| `skip_fixed` || (default is `False`) if `True`, skip rows and columns corresponding to fixed parameters ||
+
+The correlation matrix is a normalized covariance matrix.  Each element `cor[i][j]` in the corrleation matrix is equal to `cov[i][j]/sqrt(cov[i][i])/sqrt(cov[j][j])` in the covariance matrix.
+
+All elements related to a fixed parameter are zero.
 
 == Minuit constants ==
 
 === fcn ===
+
+The objective function to be minimized.  If you discard the function used to create the Minuit object, it won't be deleted because the Minuit object maintains this reference to it.
+{{{
+>>> def f(x,y): return x**2 + y**2
+... 
+>>> m = minuit.Minuit(f)
+>>> f = None
+>>> m.minos()   # not an error, because
+>>> f.fcn
+<function f at 0xb7dc0d84>
+}}}
 
 === parameters ===
 
@@ -217,6 +258,7 @@ Rather than setting Minuit object attributes to communicate the result, this fun
 === up ===
 
 === printMode ===
+ 
  
  
  
