@@ -1,0 +1,55 @@
+== minuit module ==
+
+=== machine_precision() ===
+
+== Minuit member functions ==
+
+=== Constructor: Minuit(function[, starting-values...]) ===
+
+=== migrad() ===
+
+=== hesse() ===
+
+=== minos() or minos(param, sigmas) ===
+
+=== contour(param1, param2, sigmas[, npoints]) ===
+
+=== scan((param, bins, low, high), ...[, corners[, output]]) ===
+
+=== matrix([correlation[, skip_fixed]]) ===
+
+== Read-only Minuit member data ==
+
+=== fcn ===
+
+=== parameters ===
+
+=== fval ===
+
+=== covariance ===
+
+=== merrors ===
+
+=== ncalls ===
+
+=== edm ===
+
+== Read-write Minuit member data ==
+
+=== values ===
+
+=== errors ===
+
+=== fixed ===
+
+=== limits ===
+
+=== maxcalls ===
+
+=== tol ===
+
+=== strategy ===
+
+=== up ===
+
+=== !printMode ===
