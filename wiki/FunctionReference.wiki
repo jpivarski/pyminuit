@@ -132,17 +132,49 @@ The `minos` function has two calling patterns: one with no arguments, and anothe
 || `sigmas` || the "number of sigmas" distance and direction from the minimum, usually -1 or 1 ||
 A call for `minos("x", 2)` will raise parameter _x_ until the function value increases by 2^2^ times `up`.  If the minimization represents a statistical fit, this is the 95% confidence level.  A call for `minos("x", -2)` will lower _x_ until the same condition is met.
 
-The `minos` function sets the following
+This function's behavior is affected by
+|| `values` || the location of the function minimum ||
+|| `errors` || parabolic errors: an initial guess ||
+|| `fixed` || parameters held constant ||
+|| `limits` || (low, high) limits on parameter domain ||
+|| `maxcalls` || maximum allowed number of calls (or `None`) ||
+|| `tol` || tolerance for numerical precision ||
+|| `strategy` || 0 = fast, 1 = default, 2 = thorough ||
+|| `up` || scale factor for 1-sigma errors (1 for chi^2^, 0.5 for -log likelihood) ||
+|| `printMode` || 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step ||
+
+This function sets the following
 || `merrors` || dictionary from parameter-number of sigma pairs to the MINOS result ||
 || `ncalls` || number of times the function was called by MINOS; known as NFCN in FORTRAN Minuit ||
 
-If MINOS finds a new minimum, it will raise a `MinuitError` exception with an error of the form
+If MINOS finds a new minimum, it will raise a `MinuitError` exception with a message of the form
 {{{
-Discovered a new minimum at %s = %g
+"Discovered a new minimum at %s = %g"
 }}}
 where `%s` is the parameter name and `%g` is its better-optimized value.  All other MINOS errors will also raise `MinuitError` exceptions.
 
 === contour(param1, param2, sigmas[, npoints]) ===
+
+Identifies a 2-dimensional curve in parameters `param1` and `param2` which correspond to `sigmas` sigmas from the minimum.  This corresponds to FORTRAN Minuit's CONTOUR, and is a 2-dimensional version of MINOS: the curve is not necessarily a perfect ellipse.
+
+|| `param1` || the name of the first parameter ||
+|| `param2` || the name of the second parameter ||
+|| `sigmas` || the "number of sigmas" distance from the minimum in which to search for the minimum ||
+|| `npoints` || (default is 20) an _approximate_ number of points to calculate ||
+
+This function's behavior is affected by
+|| `values` || the location of the function minimum ||
+|| `errors` || parabolic errors: an initial guess ||
+|| `fixed` || parameters held constant ||
+|| `limits` || (low, high) limits on parameter domain ||
+|| `maxcalls` || maximum allowed number of calls (or `None`) ||
+|| `tol` || tolerance for numerical precision ||
+|| `strategy` || 0 = fast, 1 = default, 2 = thorough ||
+|| `up` || scale factor for 1-sigma errors (1 for chi^2^, 0.5 for -log likelihood) ||
+|| `printMode` || 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step ||
+
+Rather than setting Minuit object attributes to communicate the result, this function returns a list of 2-tuples: points in `param1`-`param2` space corresponding to the contour line.  You can pass such a curve to your favorite plotting package.  It does, however, set the `ncalls` attribute.
+|| `ncalls` || number of times the function was called by CONTOUR; known as NFCN in FORTRAN Minuit ||
 
 === scan((param, bins, low, high), ...[, corners[, output]]) ===
 
@@ -185,6 +217,7 @@ where `%s` is the parameter name and `%g` is its better-optimized value.  All ot
 === up ===
 
 === printMode ===
+ 
  
  
  
