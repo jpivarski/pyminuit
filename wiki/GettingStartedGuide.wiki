@@ -243,18 +243,14 @@ This can be useful for 90%, 95%, and 99% confidence levels.
 
 = Drawing contour curves =
 
-There's a 2-dimensional equivalent of `minos()` errors: contour lines in two parameters.
+There's a 2-dimensional equivalent of `minos()` errors: contour lines in two parameters.  When you call `contour("param1", "param2", sigmas)`, you will get a list of _x_-_y_ pairs for an error ellipse drawn at _N_ sigmas.
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2 + x*y)
+>>> m.migrad()
+>>> m.contour("x", "y", 1)
+[(-1.1547005383792515, 0.57735026918952459), (-1.1016128399175811, 0.25107843795420443), ...]
+}}}
 
+If the function has a non-linear (or really, non-parabolic) minimum, the error ellipse won't be elliptical.
 
-
-
-
-
-
-
-
-
-
- 
- 
- 
+<center>Happy minimizing!</center>
