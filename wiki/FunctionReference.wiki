@@ -212,6 +212,8 @@ All elements related to a fixed parameter are zero.
 
 == Minuit constants ==
 
+These Minuit object attributes are read-only and never change.
+
 === fcn ===
 
 The objective function to be minimized.  If you discard the function used to create the Minuit object, it won't be deleted because the Minuit object maintains this reference to it.
@@ -225,17 +227,64 @@ The objective function to be minimized.  If you discard the function used to cre
 <function f at 0xb7dc0d84>
 }}}
 
+This function has been called FCN since days of yore.
+
 === parameters ===
+
+A list of parameter names referenced by Minuit.  It is exactly the argument list (in the same order) as the objective function, extracted through a little Python magic.
+
+{{{
+>>> def f(x,y): return x**2 + y**2
+... 
+>>> m = minuit.Minuit(f)
+>>> m.parameters
+('x', 'y')
+}}}
 
 == Minuit results ==
 
+These Minuit object attributes can be changed by calls to Minuit algorithms.
+
 === values ===
+
+A dictionary from parameter names to their current values.  Dictionaries can be viewed all at once or parameter-by-parameter using square brackets.  The order is not guaranteed if viewed all at once.
+{{{
+>>> m.values
+{'y': 3.0, 'x': 4.0}
+>>> m.values["x"]
+4.0
+>>> m.values["y"] = 10
+>>> m.values
+{'y': 10.0, 'x': 4.0}
+}}}
+
+As illustrated by the above example, you can set entries of `values` by hand to try to improve the starting point for a minimization algorithm.
+
+You are free to add keys to this dictionary which don't correspond to any parameters at your own peril (risk of confusing yourself).  !PyMinuit will ignore any entries which do not correspond to parameter names.
 
 === errors ===
 
+A dictionary from parameter names to their current errors or step sizes.  See notes for `values`.
+
 === fval ===
 
+The smallest value of the function determined by the previous algorithm (not cumulative).  This attribute is read-only, and will be `None` before any algorithms have been run.
+
 === covariance ===
+
+The covariance matrix, expressed as a dictionary from parameter name pairs to covariance elements.  This attribute is read-only, and will be `None` before any algorithms have been run.
+
+Here is an example of an identity covariance matrix:
+{{{
+>>> m.covariance
+{('y', 'x'): 0.0, ('x', 'y'): 0.0, ('y', 'y'): 1.0, ('x', 'x'): 1.0}
+>>> m.covariance["x", "x"]
+1.0
+>>> m.covariance["x", "y"]
+0.0
+}}}
+
+To access the covariance (or correlation) in matrix form, see the `matrix()` function.
 
 === merrors ===
 
@@ -258,6 +307,7 @@ The objective function to be minimized.  If you discard the function used to cre
 === up ===
 
 === printMode ===
+ 
  
  
  
