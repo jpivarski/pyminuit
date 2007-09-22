@@ -253,4 +253,8 @@ There's a 2-dimensional equivalent of `minos()` errors: contour lines in two par
 
 If the function has a non-linear (or really, non-parabolic) minimum, the error ellipse won't be elliptical.
 
-= Happy minimizing! =
+The `scan()` function can also produce plotter-friendly output by setting `output=True` (the default).  It outputs a matrix of evaluated function values, which can be drawn as a density map.
+
+=== Happy minimizing! ===
+ 
+ 
