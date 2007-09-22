@@ -1,3 +1,142 @@
 #labels User-Documentation,Featured
-Not yet, but soon.
- 
+= Installation =
+
+First, [HowToInstall download and install] !PyMinuit.
+
+When it is correctly installed, you will be able to import the `minuit` module in Python.
+
+{{{
+% python
+Python 2.4.3 (#2, Oct  6 2006, 07:52:30) 
+[GCC 4.0.3 (Ubuntu 4.0.3-1ubuntu5)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import minuit
+}}}
+Success!
+
+{{{
+>>> import minuit
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+ImportError: No module named minuit
+}}}
+Failure!
+
+All of the following examples will assume that you have executed
+{{{
+>>> import minuit
+}}}
+(without explicitly typing the Python `>>>` prompt).
+
+= Minimizing simple functions =
+
+To minimize a function, we will
+  # create it,
+  # pass it to a new Minuit object, and
+  # call `migrad()`, the minimizing algorithm
+  # extract the results from the Minuit object
+
+Here's an example of a simple 2-dimensional paraboloid.
+{{{
+>>> def f(x, y): return (x-1)**2 + (y-2)**2 + 3      # step 1
+>>> m = minuit.Minuit(f)                             # step 2
+>>> m.migrad()                                       # step 3
+>>> m.values["x"], m.values["y"], m.fval             # step 4
+(0.99999999986011212, 1.9999999997202242, 3.0)
+}}}
+The optimized _x_ value is 1 (well, almost), the _y_ value is 2 (ditto), and the minimum value of the function is 3.0.
+
+You can do this with any Python function, even functions that throw exceptions when certain parameters are not met.
+{{{
+>>> def f(x,y):
+...     if abs(x) < 1: raise Exception
+...     return x**2 + y**2
+... 
+>>> m = minuit.Minuit(f)
+>>> m.migrad()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+  File "<stdin>", line 2, in f
+Exception
+}}}
+
+A function in Python can be defined using the `def` keyword or inline as a `lambda` expression.  The following two statements are equivalent:
+{{{
+>>> def f(x, y):
+...     return x**2 + y**2
+... 
+>>> f = lambda x, y: x**2 + y**2
+}}}
+but the second can be embedded in the Minuit object's constructor:
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2)
+}}}
+
+See FunctionReference for a warning about integer division.
+
+== Helping the minimization by setting initial values ==
+
+You will often want to pass initial values and errors (which `migrad()` interprets as starting step sizes).  You can do this in the Minuit constructor
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2, x=3, y=5, err_x=0.01)
+}}}
+or after the object has been created
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2)
+>>> m.values["x"] = 3
+>>> m.values["y"] = 5
+>>> m.errors["x"] = 0.01
+}}}
+
+If Minuit fails to find a minimum of your function, you can set the `printMode` to try to diagnose the problem and choose a better starting point.  (See FunctionReference for more.)
+{{{
+>>> m = minuit.Minuit(lambda x, y: (x-1)**2 + (y-2)**2, x=3, y=4)
+>>> m.printMode = 1
+>>> m.migrad()
+  FCN Result | Parameter values
+-------------+--------------------------------------------------------
+           8 |            3            4
+       8.004 |        3.001            4
+       7.996 |        2.999            4
+     8.00586 |      3.00146            4
+     7.99414 |      2.99854            4
+       8.004 |            3        4.001
+       7.996 |            3        3.999
+     8.00586 |            3      4.00146
+     7.99414 |            3      3.99854
+ 4.24755e-18 |            1            2
+ 2.38419e-07 |      1.00049            2
+ 2.38418e-07 |     0.999512            2
+ 2.38421e-07 |            1      2.00049
+ 2.38417e-07 |            1      1.99951
+ 4.24755e-18 |            1            2
+ 2.38419e-07 |      1.00049            2
+ 2.38418e-07 |     0.999512            2
+ 2.38421e-07 |            1      2.00049
+ 2.38417e-07 |            1      1.99951
+ 9.53677e-09 |       1.0001            2
+ 9.53671e-09 |     0.999902            2
+ 9.53714e-09 |            1       2.0001
+ 9.53634e-09 |            1       1.9999
+ 4.76839e-07 |      1.00049      2.00049
+}}}
+
+You can also help a minimization by starting with a rough scan of the parameter space.
+{{{
+>>> m = minuit.Minuit(lambda x, y: (x-1)**2 + (y-2)**2, x=3, y=4)
+>>> m.scan(("x", 30, -3, 7), ("y", 30, -3, 7), output=False)
+>>> m.values
+{'y': 2.1666666666666661, 'x': 1.1666666666666663}
+>>> m.migrad()
+>>> m.values
+{'y': 2.0000000000041425, 'x': 1.0000000000042153}
+}}}
+
+= Error estimation =
+
+
+
+
+
+
+
