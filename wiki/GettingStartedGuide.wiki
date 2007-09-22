@@ -1,2 +1,3 @@
-#labels User-Documentation
+#labels User-Documentation,Featured
 Not yet, but soon.
+ 
