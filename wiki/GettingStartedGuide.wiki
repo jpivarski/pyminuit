@@ -44,7 +44,7 @@ Here's an example of a simple 2-dimensional paraboloid.
 >>> m.values["x"], m.values["y"], m.fval             # step 4
 (0.99999999986011212, 1.9999999997202242, 3.0)
 }}}
-The optimized _x_ value is 1 (well, almost), the _y_ value is 2 (ditto), and the minimum value of the function is 3.0.
+The optimized _x_ value is 1 (well, almost), the _y_ value is 2 (ditto), and the minimum value of the function is 3.
 
 You can do this with any Python function, even functions that throw exceptions when certain parameters are not met.
 {{{
@@ -76,7 +76,7 @@ See FunctionReference for a warning about integer division.
 
 == Helping the minimization by setting initial values ==
 
-Naturally, there is no guarantee that we have found the absolute minimum of the function: Minuit can be fooled by a local minimum.  Minimization is an art that depends on the initial values given to Minuit.
+Naturally, there is no guarantee that we have found the absolute minimum of the function: Minuit can be fooled by a local minimum.
 {{{
 >>> def f(x):
 ...     if x < 10:
@@ -155,15 +155,64 @@ You can also help a minimization by starting with a rough scan of the parameter 
 
 = Error estimation =
 
-For statistics applications, we're also very interested in the steepness (stepth?) of the function near its minimum, because that is related the the uncertainty in our fit parameters given by the data.
+For statistics applications, we're also very interested in the steepness (stepth?) of the function near its minimum, because that is related the the uncertainty in our fit parameters given by the data.  These are returned in the `errors` attribute
+{{{
+>>> m = minuit.Minuit(lambda x, y: (x-1)**2 / 9.0 + (y-2)**4)
+>>> m.migrad()
+>>> m.errors["x"], m.errors["y"]
+(2.9999999999999463, 9.3099692500949249)
+}}}
+
+But the `migrad()` algorithm alone does not guarantee error estimates within tolerance.  For accurate errors, run the `hesse()` algorithm.
+{{{
+>>> m.hesse()
+>>> m.errors["x"], m.errors["y"]
+(2.9999999999999454, 9.308850308199208)
+}}}
+(Note that the quartic `"y"` error changed by 0.01%, much larger than the quadratic `"x"` error.  The differences can be large in more pathological cases.)
+
+The `hesse()` algorithm calculates the entire covariance matrix, the matrix of second derivatives at the minimum.  For uncorrelated functions that can be separated into _x_ terms and _y_ terms (like all the ones I have presented so far), the off-diagonal entries of the matrix are zero.  Let's illustrate the covariance matrix with a mixed _xy_ term.
+{{{
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2 + x*y)
+>>> m.migrad()
+>>> m.hesse()
+>>> m.errors["x"]**2, m.errors["y"]**2
+(1.3333333333333337, 1.3333333333333337)
+>>> m.covariance
+{('y', 'x'): -0.66666666666666685, ('x', 'y'): -0.66666666666666685, ('y', 'y'): 1.3333333333333335, ('x', 'x'): 1.3333333333333335}
+}}}
+
+The diagonal elements (_xx_ and _yy_) are equal to the squares of the errors by definition.  Because `covariance` is expressed as a dictionary, we can pull any element from it by name.
+{{{
+>>> m.covariance["x", "x"], m.covariance["y", "y"]
+(1.3333333333333335, 1.3333333333333335)
+>>> m.covariance["x", "y"], m.covariance["y", "x"]
+(-0.66666666666666685, -0.66666666666666685)
+}}}
+
+Sometimes, it is more convenient to access the covariance matrix as a square array.
+{{{
+>>> m.matrix()
+((1.3333333333333335, -0.66666666666666685), (-0.66666666666666685, 1.3333333333333335))
+>>> import Numeric
+>>> Numeric.array(m.matrix())
+array([[ 1.33333333, -0.66666667],
+       [-0.66666667,  1.33333333]])
+}}}
+(The second example works only if you have the `Numeric`, `numarray`, or `numpy` modules installed.)
+
+It's also sometimes interesting to see the correlation matrix, which is normalized such that all diagonal entries are 1.
+{{{
+>>> m.matrix(correlation=True)
+((1.0, -0.5), (-0.5, 1.0))
+}}}
+
+= Non-linear error measurement =
 
 
 
 
 
 
-
-
-
-
+ 
  
