@@ -74,7 +74,7 @@ but the second can be embedded in the Minuit object's constructor:
 
 See FunctionReference for a warning about integer division.
 
-== Helping the minimization by setting initial values ==
+= Helping the minimization by setting initial values =
 
 Naturally, there is no guarantee that we have found the absolute minimum of the function: Minuit can be fooled by a local minimum.
 {{{
@@ -253,4 +253,4 @@ There's a 2-dimensional equivalent of `minos()` errors: contour lines in two par
 
 If the function has a non-linear (or really, non-parabolic) minimum, the error ellipse won't be elliptical.
 
-<center>Happy minimizing!</center>
+= Happy minimizing! =
