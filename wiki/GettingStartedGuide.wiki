@@ -76,7 +76,28 @@ See FunctionReference for a warning about integer division.
 
 == Helping the minimization by setting initial values ==
 
-You will often want to pass initial values and errors (which `migrad()` interprets as starting step sizes).  You can do this in the Minuit constructor
+Naturally, there is no guarantee that we have found the absolute minimum of the function: Minuit can be fooled by a local minimum.  Minimization is an art that depends on the initial values given to Minuit.
+{{{
+>>> def f(x):
+...     if x < 10:
+...         return (x-1)**2 - 5
+...     else:
+...         return (x-15)**2 - 7
+... 
+>>> m = minuit.Minuit(f)
+>>> m.values["x"] = 2
+>>> m.migrad()
+>>> m.values["x"], m.fval
+(1.0000000001398872, -5.0)
+>>> 
+>>> m = minuit.Minuit(f)
+>>> m.values["x"] = 16
+>>> m.migrad()
+>>> m.values["x"], m.fval
+(15.000000001915796, -7.0)
+}}}
+
+You can guide Minuit away from local minima by a careful choice of initial values.  This can also help if Minuit fails to converge: the neighborhood of minima are often more well-behaved (positive definite, or even parabolic) than regions far from minima.  You can pass initial values and errors (which `migrad()` interprets as starting step sizes) in the Minuit constructor
 {{{
 >>> m = minuit.Minuit(lambda x, y: x**2 + y**2, x=3, y=5, err_x=0.01)
 }}}
@@ -134,9 +155,15 @@ You can also help a minimization by starting with a rough scan of the parameter 
 
 = Error estimation =
 
+For statistics applications, we're also very interested in the steepness (stepth?) of the function near its minimum, because that is related the the uncertainty in our fit parameters given by the data.
 
 
 
 
 
 
+
+
+
+
+ 
