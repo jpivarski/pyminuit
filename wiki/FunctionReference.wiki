@@ -37,6 +37,27 @@ To create a Minuit object, you must pass it a Python function.  Python functions
 }}}
 The former is quicker to type and the latter offers more flexibility.
 
+The function must accept _N_>0 numerical arguments and return 1 numerical result.  All parameters will be passed as Python `floats` (double-precision in C).
+
+Be careful of integer division inside your function.  If numbers are not explicitly `floats`, division can lead to some unexpected results:
+{{{
+>>> 1/2
+0
+>>> 1./2.
+0.5
+>>> float(1)/2
+0.5
+>>> 1/float(2)
+0.5
+}}}
+
+One way to be sure that integer division is never used in a Python script is to "import division from future":
+{{{
+>>> from __future__ import division
+>>> 1/2
+0.5
+}}}
+
 The function is stored as `m.fcn` and the parameter names as a tuple attribute `m.parameters` (assuming the Minuit object is called `m`.).  They are constants and cannot be changed (without creating a new Minuit object).
 
 You can also pass initial values in the Minuit constructor as Python keyword arguments.  For instance,
@@ -443,3 +464,4 @@ And now `printMode=3`
 }}}
 
 _C'est tout!  Bonne nuit!_
+ 
