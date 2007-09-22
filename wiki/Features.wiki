@@ -1,3 +1,4 @@
+#labels User-Documentation,Featured
 == What Minuit can do ==
 
 Given an arbitrary numerical function of _N_ variables, Minuit searches the parameter space for the minimum value of that function.  This represents a very broad class of applications, but most often, Minuit is used to fit theoretical curves to experimental data.
@@ -22,3 +23,4 @@ Through !PyMinuit, you can
   * Calculate 2D contours a given number of standard deviations from the minimum.  The result is a list of 2-tuple pairs, to be given to a plotting program.
   * Scan the function with an _N_-dimensional lattice of points, either at the centers of bins or at the corners.
   * Set limits on the number of allowed function calls, the tolerance, the Minuit strategy number (0, 1, 2), the `up` parameter (1 for chi^2^, 1/2 for -log likelihood), and access the function value, number of calls in the last command, and estimated distance to the minimum.
+ 
