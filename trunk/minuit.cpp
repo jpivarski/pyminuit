@@ -130,24 +130,39 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
       Py_DECREF(func_code);
       return -1;
    }
-   if (!PyTuple_Check(co_varnames)) {
-      PyErr_SetString(PyExc_RuntimeError, "function.func_code.co_varnames must be a tuple.");
+   PyObject *co_argcount = PyObject_GetAttrString(func_code, "co_argcount");
+   if (co_argcount == NULL) {
       Py_DECREF(func_code);
       Py_DECREF(co_varnames);
       return -1;
    }
-   if (PyTuple_Size(co_varnames) < 1) {
+   if (!PyTuple_Check(co_varnames)) {
+      PyErr_SetString(PyExc_TypeError, "function.func_code.co_varnames must be a tuple.");
+      Py_DECREF(func_code);
+      Py_DECREF(co_varnames);
+      Py_DECREF(co_argcount);
+      return -1;
+   }
+   if (!PyInt_Check(co_argcount)) {
+      PyErr_SetString(PyExc_TypeError, "function.func_code.co_argcount must be an integer.");
+      Py_DECREF(func_code);
+      Py_DECREF(co_varnames);
+      Py_DECREF(co_argcount);
+      return -1;
+   }
+   if (PyInt_AsLong(co_argcount) < 1) {
       PyErr_SetString(PyExc_TypeError, "This function has no parameters to minimize.");
       Py_DECREF(func_code);
       Py_DECREF(co_varnames);
+      Py_DECREF(co_argcount);
       return -1;
    }
 
-   self->parameters = co_varnames;
-   Py_INCREF(self->parameters);
+   self->parameters = PyTuple_GetSlice(co_varnames, 0, PyInt_AsLong(co_argcount));
 
    Py_DECREF(func_code);
    Py_DECREF(co_varnames);
+   Py_DECREF(co_argcount);
 
    self->npar = PyTuple_Size(self->parameters);
    self->maxcalls = Py_BuildValue("O", Py_None);
@@ -925,6 +940,24 @@ static PyObject* minuit_Minuit_scan(minuit_Minuit* self, PyObject* args, PyObjec
       self->scandepth = 0;
       return NULL;
    }
+   if (self->printMode > 0) {
+      switch (self->printMode) {
+	 case 1:
+	    printf("  FCN Result | Parameter values\n");
+	    printf("-------------+--------------------------------------------------------\n");
+	    break;
+	 case 2:
+	    printf("  FCN Result | Differences in parameter values from initial\n");
+	    printf("-------------+--------------------------------------------------------\n");
+	    self->myfcn->setOriginal(self->upar->params());
+	    break;
+	 case 3:
+	    printf("  FCN Result | Differences in parameter values from the previous\n");
+	    printf("-------------+--------------------------------------------------------\n");
+	    self->myfcn->setOriginal(self->upar->params());
+	    break;
+      }
+   }
    self->myfcn->setPrintMode(self->printMode);
 
    if (!PyDict_Check(self->values)) {
@@ -933,8 +966,10 @@ static PyObject* minuit_Minuit_scan(minuit_Minuit* self, PyObject* args, PyObjec
       self->scandepth = 0;
       return NULL;
    }
-
+   
    if (self->scandepth == 0) {
+      self->ncalls = 0;
+
       for (int i = 0;  i < self->npar;  i++) {
 	 PyObject *value = PyDict_GetItemString(self->values, self->upar->name(i));
 	 if (value == NULL) {
@@ -978,6 +1013,7 @@ static PyObject* minuit_Minuit_scan(minuit_Minuit* self, PyObject* args, PyObjec
 	 double result;
 	 try {
 	    result = (*self->myfcn)(self->upar->params());
+	    self->ncalls++;
 	 }
 	 catch (ExceptionDuringMinimization theException) {
 	    if (subargs != NULL) Py_DECREF(subargs);
