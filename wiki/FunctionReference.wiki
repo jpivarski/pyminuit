@@ -213,6 +213,7 @@ For example,
 scans a rectangle 10-bins wide in `"x"` from `x=0` to `x=1` and 5-bins wide in `"y"` from `y=-20` to `y=20`, for a total of 10 times 5 = 50 function evaluations.  This function sets two Minuit object attributes.
 || `values` || parameter values which minimize the function ||
 || `fval` || function value at the minimum ||
+|| `ncalls` || number of times the function was called ||
 
 Two arguments can be passed as keyword arguments to the function.
 || `corners` || (default is `False`) if `True`, calculate the left edges of each bin, rather than the centers ||
@@ -464,4 +465,5 @@ And now `printMode=3`
 }}}
 
 _C'est tout!  Bonne nuit!_
+ 
  
