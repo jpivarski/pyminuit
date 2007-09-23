@@ -255,7 +255,26 @@ If the function has a non-linear (or really, non-parabolic) minimum, the error e
 
 The `scan()` function can also produce plotter-friendly output by setting `output=True` (the default).  It outputs a matrix of evaluated function values, which can be plotted as a density map for the function.
 
-=== Happy minimizing! ===
+=== Fitting ===
  
- 
- 
+If you actually want to fit anything, you need to write a chi^2^ or negative log likelihood function.
+{{{
+>>> data = [(1,1.1,0.1), (2,1.9,0.1), (3,2.9,0.1), (4,4.1,0.1)]
+>>> def f(x, a, b): return a + b*x
+... 
+>>> def chi2(a, b):
+...     c2 = 0.
+...     for x, y, yerr in data:
+...         c2 += (f(x, a, b) - y)**2 / yerr**2
+...     return c2
+... 
+>>> m = minuit.Minuit(chi2)
+>>> m.migrad()
+>>> m.hesse()
+>>> m.values
+{'a': -2.1538326677728037e-14, 'b': 0.99999999999998801}
+>>> m.errors
+{'a': 0.12247448601958956, 'b': 0.04472135917807836}
+>>> m.matrix(correlation=True)
+((1.0, -0.91287092769600364), (-0.91287092769600375, 1.0))
+}}}
