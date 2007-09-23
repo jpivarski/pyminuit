@@ -255,7 +255,7 @@ If the function has a non-linear (or really, non-parabolic) minimum, the error e
 
 The `scan()` function can also produce plotter-friendly output by setting `output=True` (the default).  It outputs a matrix of evaluated function values, which can be plotted as a density map for the function.
 
-=== Fitting ===
+= Fitting =
  
 If you actually want to fit anything, you need to write a chi^2^ or negative log likelihood function.
 {{{
@@ -278,3 +278,5 @@ If you actually want to fit anything, you need to write a chi^2^ or negative log
 >>> m.matrix(correlation=True)
 ((1.0, -0.91287092769600364), (-0.91287092769600375, 1.0))
 }}}
+
+But with access to the low-level function minimization, you can do much more complicated fits, such as simultaneous fits to different distributions, which are difficult to express in a high-level application.
