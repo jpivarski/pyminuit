@@ -1,4 +1,4 @@
-#summary Informal introduction
+#summary Informal introduction and tutorial
 #labels User-Documentation,Featured
 
 = Installation =
