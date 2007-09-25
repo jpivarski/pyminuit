@@ -1,4 +1,6 @@
+#summary Instructions for downloading and installing
 #labels Phase-Deploy,Featured
+
 ===Overview===
 
 Conceptually, there are three steps to install !PyMinuit on your
