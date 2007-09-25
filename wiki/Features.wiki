@@ -1,4 +1,6 @@
+#summary List of !PyMinuit's features
 #labels User-Documentation
+
 == What Minuit can do ==
 
 Given an arbitrary numerical function of _N_ variables, Minuit searches the parameter space for the minimum value of that function.  This represents a very broad class of applications, but most often, Minuit is used to fit theoretical curves to experimental data.
