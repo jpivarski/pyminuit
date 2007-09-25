@@ -1,4 +1,4 @@
-#summary List of !PyMinuit's features
+#summary List of PyMinuit's features
 #labels User-Documentation
 
 == What Minuit can do ==
