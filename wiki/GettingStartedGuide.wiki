@@ -1,4 +1,6 @@
+#summary Informal introduction
 #labels User-Documentation,Featured
+
 = Installation =
 
 First, [HowToInstall download and install] !PyMinuit.
