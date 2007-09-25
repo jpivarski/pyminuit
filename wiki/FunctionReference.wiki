@@ -1,4 +1,6 @@
+#summary Function-by-function documentation
 #labels User-Documentation,Featured
+
 == minuit module ==
 
 === machine_precision() ===
