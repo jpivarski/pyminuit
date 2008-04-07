@@ -1,7 +1,9 @@
 #summary Instructions for downloading and installing
 #labels Phase-Deploy,Featured
 
-===Overview===
+The first part of this page describes installation on a Linux or Mac OS X computer; the second part describes installation under Windows.
+
+==Linux and Mac Installation Overview==
 
 Conceptually, there are three steps to install !PyMinuit on your
 computer.  
@@ -14,8 +16,7 @@ The `setup.py` disttools script should take care of the first two steps,
 and the third may be automatic.
 
 Here are instructions that have been tested on Linux (Ubuntu Dapper
-Drake).  They will probably work Mac OS X, and might even work on
-Windows.
+Drake).  They will probably work Mac OS X.
 
 ===Run the `setup.py` script===
 
@@ -84,6 +85,38 @@ an already-compiled `Minuit-1_7_9`.
 If you have any suggestions for improving the installation process,
 please add it to [http://code.google.com/p/pyminuit/issues/list my issues list].
 
+==Windows Installations==
 
- 
- 
+|| I want to thank Jette for these Windows-installation instructions! ||
+
+Unlike Linux (and now the Mac), Windows doesn't come with a built-in compiler, so we'll need to download one.  The following is sufficient:
+
+  * [[http://www.mingw.org/][MinGW]] a minimal set of Gnu tools, including the Gnu compiler
+  * [[http://sourceforge.net/project/showfiles.php?group_id=2435][MSYS]] you only need to download "msysCORE-1.0.11-20071204.tar.bz2"
+
+Unpack these and add the new MSYS/bin directory to your Windows PATH variable.  (This is a `set` statement in a batch script--- you need to be familiar with using shell variables on the Windows command prompt to do it.)
+
+PyMinuit comes in two parts: the Minuit libraries themselves and the Python wrapper.  Under Windows, you need to install and compile these both separately, by hand.  Here's how to do that.
+
+Download and unpack PyMinuit.  If you do it directly on the `C:\` drive, you will get a folder named `C:\pyminuit`
+
+In `C:\pyminuit` find `Minuit-1_7_9.tar.gz` and unpack it into `C:\pyminuit\Minuit-1_7_9`
+
+Open a command prompt, change directories to `C:\pyminuit\Minuit-1_7_9`, and compile it with the following commands.  (Jim Pivarski's comment: I don't think the `make install` is necessary, but I haven't done it myself.)
+
+{{{
+C:\pyminuit\Minuit-1_7_9>sh configure
+C:\pyminuit\Minuit-1_7_9>make
+C:\pyminuit\Minuit-1_7_9>make install
+}}}
+
+Now change directories to `C:\pyminuit` and compile PyMinuit:
+
+{{{
+C:\pyminuit\Minuit-1_7_9>cd ..
+C:\pyminuit\>python setup.py install build -c mingw32
+}}}
+
+You may need to set your PYTHONPATH variable to include `C:\pyminuit` with a `set` statement in a batch script.
+
+Good luck!
