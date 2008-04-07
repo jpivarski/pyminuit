@@ -96,9 +96,9 @@ Unlike Linux (and now the Mac), Windows doesn't come with a built-in compiler, s
 
 Unpack these and add the new MSYS/bin directory to your Windows PATH variable.  (This is a `set` statement in a batch script--- you need to be familiar with using shell variables on the Windows command prompt to do it.)
 
-PyMinuit comes in two parts: the Minuit libraries themselves and the Python wrapper.  Under Windows, you need to install and compile these both separately, by hand.  Here's how to do that.
+!PyMinuit comes in two parts: the Minuit libraries themselves and the Python wrapper.  Under Windows, you need to install and compile these both separately, by hand.  Here's how to do that.
 
-Download and unpack PyMinuit.  If you do it directly on the `C:\` drive, you will get a folder named `C:\pyminuit`
+Download and unpack !PyMinuit.  If you do it directly on the `C:\` drive, you will get a folder named `C:\pyminuit`
 
 In `C:\pyminuit` find `Minuit-1_7_9.tar.gz` and unpack it into `C:\pyminuit\Minuit-1_7_9`
 
@@ -110,7 +110,7 @@ C:\pyminuit\Minuit-1_7_9>make
 C:\pyminuit\Minuit-1_7_9>make install
 }}}
 
-Now change directories to `C:\pyminuit` and compile PyMinuit:
+Now change directories to `C:\pyminuit` and compile !PyMinuit:
 
 {{{
 C:\pyminuit\Minuit-1_7_9>cd ..
