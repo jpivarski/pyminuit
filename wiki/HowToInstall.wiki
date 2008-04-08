@@ -82,8 +82,11 @@ Be sure to tell me whether the following files exist:
 .../pyminuit/Minuit-1_7_9/src/.libs/liblcg_Minuit.*
 .../pyminuit/build
 ~/lib/liblcg_Minuit*
-~/lib/python/minuit.so*
+~/lib/python/minuit.so
+/usr/lib/liblcg_Minuit*
+/usr/lib/python/minuit.so
 }}}
+and whether you are attempting a system-wide installation or a home-directory installation.
 
 ==Windows Installations==
 
