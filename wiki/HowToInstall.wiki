@@ -94,7 +94,7 @@ Unlike Linux (and now the Mac), Windows doesn't come with a built-in compiler, s
   * [http://www.mingw.org/ MinGW] a minimal set of Gnu tools, including the Gnu compiler
   * [http://sourceforge.net/project/showfiles.php?group_id=2435 MSYS] you only need to download "msysCORE-1.0.11-20071204.tar.bz2"
 
-Unpack these and add the new MSYS/bin directory to your Windows PATH variable.  (This is a `set` statement in a batch script--- you need to be familiar with using shell variables on the Windows command prompt to do it.)
+Unpack these and add the new MSYS/bin directory to your Windows PATH variable.  (Right click on My computer, choose Properties, Advanced, Environment Variables.  In the lower list choose to edit the variable named Path and add MSYS\bin.)
 
 !PyMinuit comes in two parts: the Minuit libraries themselves and the Python wrapper.  Under Windows, you need to install and compile these both separately, by hand.  Here's how to do that.
 
@@ -117,6 +117,4 @@ C:\pyminuit\Minuit-1_7_9>cd ..
 C:\pyminuit\>python setup.py install build -c mingw32
 }}}
 
-You may need to set your PYTHONPATH variable to include `C:\pyminuit` with a `set` statement in a batch script.
-
-Good luck!
+You may need to set your PYTHONPATH variable to include `C:\pyminuit` (same method as for PATH).
