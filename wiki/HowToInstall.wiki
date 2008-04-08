@@ -42,9 +42,7 @@ If not, you'll have to install Minuit-1_7_9 and pyminuit in your home directory.
 % make
 % make install
 }}}
-(You might not be allowed to use the `~` shortcut.)
-
-_(To do: make setup.py smart enough to set the prefix when it configures Minuit.)_
+(You might not be allowed to use the `~` shortcut.)  _(To do: make setup.py smart enough to set the prefix when it configures Minuit, so that the user doesn't have to do it by hand!)_
 
   * Go back to your pyminuit directory and install in ~/lib
 {{{
