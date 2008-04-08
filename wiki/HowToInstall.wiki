@@ -18,32 +18,41 @@ and the third may be automatic.
 Here are instructions that have been tested on Linux (Ubuntu Dapper
 Drake).  They will probably work Mac OS X.
 
-===Run the `setup.py` script===
+===System-wide installation===
 
-If you have access to your Python distribution (as root superuser or
-because you installed Python yourself), just run
+If you have superuser privileges (root access), you can install !PyMinuit on your whole system using the default installation script.  Change directories to your unpacked pyminuit distribution and type
 
 {{{
 % python setup.py install
 }}}
 
-(without the `%` command prompt).  If you need to install !PyMinuit in
-your home directory, use this option:
+(without the `%` command prompt).
 
+If that didn't work, follow the home-directory installation.
+
+===Home-directory installation===
+
+If not, you'll have to install Minuit-1_7_9 and pyminuit in your home directory.  This will create a ~/lib directory, if one doesn't already exist.  First, change directories to your unpacked pyminuit distribution, then
+
+  * Unpack, compile, and install Minuit-1_7_9:
 {{{
+% tar -xzvf Minuit-1_7_9.tar.gz
+% cd Minuit-1_7_9
+% ./configure --prefix=~/lib
+% make
+% make install
+}}}
+(You might not be allowed to use the `~` shortcut.)
+
+_(To do: make setup.py smart enough to set the prefix when it configures Minuit.)_
+
+  * Go back to your pyminuit directory and install in ~/lib
+{{{
+% cd ..
 % python setup.py install --home=~
 }}}
 
-(or replace `~` with the directory of choice).  This latter option
-creates a `lib/python` directory for local Python modules.
-
-For more on Python distutils, see [http://docs.python.org/inst/inst.html the distutils tutorial].
-
-===Make sure Python can find your library===
-
-If you installed your library in the standard location (no `--home`
-switch), Python should be able to find it automatically.  Test it with
-
+  * Test the installation with
 {{{
 % python
 Python 2.4.3 (#2, Oct  6 2006, 07:52:30) 
@@ -51,19 +60,9 @@ Python 2.4.3 (#2, Oct  6 2006, 07:52:30)
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import minuit
 }}}
-
 (There should be no error messages.)
 
-If you installed it in a different location (e.g. `--home=~`), find the
-library by hand,
-
-{{{
-% ls ~/lib/python/minuit.so 
-}}}
-
-and add this path to your `PYTHONPATH` variable.  In your login script,
-add something like
-
+  * Make sure Python can find your library, no matter what directory you start it from: add one of the following to your login script
 {{{
 export PYTHONPATH=~/lib/python:$PYTHONPATH
 }}}
@@ -76,14 +75,17 @@ setenv PYTHONPATH ~/lib/python:$PYTHONPATH
 
 ===If something goes wrong===
 
-The `setup.py` script attempts to unpack `Minuit-1_7_9.tar.gz` with the
-`tar` command, configure it with `./configure`, and compile it with
-`make`.  If this is not appropriate for your system, untar, configure,
-and compile by hand.  The setup.py script will not attempt to compile
-an already-compiled `Minuit-1_7_9`.
-
 If you have any suggestions for improving the installation process,
 please add it to [http://code.google.com/p/pyminuit/issues/list my issues list].
+
+Be sure to tell me whether the following files exist:
+{{{
+.../pyminuit/Minuit-1_7_9
+.../pyminuit/Minuit-1_7_9/src/.libs/liblcg_Minuit.*
+.../pyminuit/build
+~/lib/liblcg_Minuit*
+~/lib/python/minuit.so*
+}}}
 
 ==Windows Installations==
 
@@ -102,7 +104,7 @@ Download and unpack !PyMinuit.  If you do it directly on the `C:\` drive, you wi
 
 In `C:\pyminuit` find `Minuit-1_7_9.tar.gz` and unpack it into `C:\pyminuit\Minuit-1_7_9`
 
-Open a command prompt, change directories to `C:\pyminuit\Minuit-1_7_9`, and compile it with the following commands.  (Jim Pivarski's comment: I don't think the `make install` is necessary, but I haven't done it myself.)
+Open a command prompt, change directories to `C:\pyminuit\Minuit-1_7_9`, and compile it with the following commands.
 
 {{{
 C:\pyminuit\Minuit-1_7_9>sh configure
