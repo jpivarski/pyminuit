@@ -171,7 +171,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 If that worked, move on to the [GettingStartedGuide Getting Started Guide] and have fun with your new function minimizer!
 
-===If something goes wrong===
+==If something goes wrong==
 
 If you have any suggestions for improving the installation process,
 please add it to [http://code.google.com/p/pyminuit/issues/list my issues list].
@@ -187,4 +187,3 @@ Be sure to tell me whether the following files exist:
 /usr/lib/python/minuit.so
 }}}
 and whether you are attempting to install in the standard or a non-standard location.
-
