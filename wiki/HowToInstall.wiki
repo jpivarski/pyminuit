@@ -1,11 +1,11 @@
 #summary Instructions for downloading and installing
 #labels Phase-Deploy,Featured
 
-I have re-written the installation procedure to be more robust, so that !PyMinuit will be installed correctly on the first try for a wider variety of computers.  This page may look daunting, but when you get into it, you'll see that the instrucitons are all step-by-step.  By walking through the process in a pedestrian manner, rather than balling it up in an automated script, you would be better able to diagnosea problem if something goes wrong (or I would, if you post the output under the [http://code.google.com/p/pyminuit/issues/list Issues Tab].
+I have re-written the installation procedure to be more robust, so that !PyMinuit will be installed correctly on the first try for a wider variety of computers.  This page may look daunting, but when you get into it, you'll see that the instructions are all step-by-step.  By walking through the process in a pedestrian manner, rather than balling it up in an automated script, you would be better able to diagnose problem if something goes wrong or have more information when [HowToInstall#If_something_goes_wrong requesting help].
 
 The installation has been tested on Windows and Ubuntu Linux.  If you have any other Linux distribution, any other variant of Unix, or even a Mac, try the "Linux instructions" and let me know if it works!
 
-==Download==
+==1. Download==
 
 Download both of the following:
 
@@ -14,7 +14,7 @@ Download both of the following:
 
 and unpack (unarchive) them in a convenient directory.  Your browser might do this step automatically.
 
-You should now have two new directories, `Minuit-1_7_9` and `pyminuit`.  Minuit is the actual minimization package (in C++) and pyminuit is the Python interface.  Both will need to be compiled.
+You should now have two new directories, `Minuit-1_7_9` and `pyminuit`.  Minuit is the actual minimization package (in C++) and !PyMinuit is the Python interface.  Both will need to be compiled.
 
 ===Extra downloads needed for Windows===
 
@@ -30,7 +30,7 @@ Next, add the location of your new `MSYS/bin` directory to your Windows `Path` v
 
 (Naturally, you'll also need to have [http://python.org/download/ Python for Windows] installed.)
 
-==Installing on Windows==
+==2. Installing on Windows==
 
 Now that you have a compiler and installation directories for `Minuit-1_7_9` and `pyminuit`, let's install them one at a time.
 
@@ -67,70 +67,70 @@ Python 2.4.3 (#2, Oct  6 2006, 07:52:30)
 [GCC 4.0.3 (Windows)] on windows
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import minuit
->>> (no error messages!)
+>>> # (no error messages!)
 }}}
 
 If that worked, move on to the [GettingStartedGuide Getting Started Guide] and have fun with your new function minimizer!
 
 
-==Installing on Linux/Unix/Mac in the standard location==
+==2. Installing on Linux/Unix/Mac in the standard location==
 
 These instructions apply if you have root (superuser) access, and can therefore install in the standard location (usually `/usr`).  If you don't have the necessary permissions or want to install elsewhere, follow the next block of instructions below.
 
-Move to your new `Minuit-1_7_9` directory and install that first.
+Move to your new `Minuit-1_7_9` directory and install that first.  (Your prompt might look different.)
 
 {{{
-linux> cd Minuit-1_7_9
-linux> ./configure
-linux> make
-linux> make install
+% cd Minuit-1_7_9
+% ./configure
+% make
+% make install
 }}}
 
-The `configure`, `make` and `make install` commands should produce a lot of output, hopefully not ending wiht an error message (something with "Exit 1" at the end).
+The `configure`, `make` and `make install` commands should produce a lot of output, hopefully not ending with an error message (something with "Exit 1" at the end).
 
 If successful, move to your `pyminuit` directory and run its installation script:
 
 {{{
-linux> cd ../pyminuit
-linux> python setup.py install
+% cd ../pyminuit
+% python setup.py install
 }}}
 
 This should install !PyMinuit in your standard Python repository, such that you can now "import minuit" from a new Python prompt.  To perform a fair test of Python's ability to find !PyMinuit, first move out of your installation directory, so that Python doesn't simply access the local copy.
 
 {{{
-linux>cd
-linux>python
+%cd
+%python
 Python 2.4.3 (#2, Oct  6 2006, 07:52:30) 
 [GCC 4.0.3 (Ubuntu 4.0.3-1ubuntu5)] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import minuit
->>> (no error messages!)
+>>> # (no error messages!)
 }}}
 
 If that worked, move on to the [GettingStartedGuide Getting Started Guide] and have fun with your new function minimizer!
 
-==Installing on Linux/Unix/Mac in a non-standard location==
+==2. Installing on Linux/Unix/Mac in a non-standard location==
 
 These instructions apply if you want to install in your home directory or some other non-standard location.  In these instructions, I'll assume that you want to put it in a directory called `/home/username`.
 
-Move to your new `Minuit-1_7_9` directory and configure it with the destination passed as a `--prefix`.  Then `make` and `make install` as usual.
+Move to your new `Minuit-1_7_9` directory and configure it with the destination passed as a `--prefix`.  Then `make` and `make install` as usual.  (Your prompt might look different.)
 
 {{{
-linux> cd Minuit-1_7_9
-linux> ./configure --prefix=/home/username
-linux> make
-linux> make install
+% cd Minuit-1_7_9
+% ./configure --prefix=/home/username
+% make
+% make install
 }}}
 
-The `configure`, `make` and `make install` commands should produce a lot of output, hopefully not ending wiht an error message (something with "Exit 1" at the end).
+The `configure`, `make` and `make install` commands should produce a lot of output, hopefully not ending with an error message (something with "Exit 1" at the end).
 
 Note that this will create directories named `lib` and `include` in your chosen destination.
 
 Next, you need to be sure that Linux knows where to find this new library.  The preferred way to do this is by adding an entry to `/etc/ld.so.conf`, but that would require root access, which might be defeating the point!  Instead, you can add the chosen destination to your `LD_LIBRARY_PATH` environment variable.
 
 {{{
-linux> export LD_LIBRARY_PATH=/home/username:$LD_LIBRARY_PATH     # if you're an sh/bash/zsh user
-linux> setenv LD_LIBRARY_PATH /home/username:$LD_LIBRARY_PATH     # if you're a csh/tcsh user
+% export LD_LIBRARY_PATH=/home/username:$LD_LIBRARY_PATH     # if you're an sh/bash/zsh user
+% setenv LD_LIBRARY_PATH /home/username:$LD_LIBRARY_PATH     # if you're a csh/tcsh user
 }}}
 
 (The command `echo $SHELL` will tell you the name of your shell, and therefore which syntax to use.)
@@ -138,43 +138,44 @@ linux> setenv LD_LIBRARY_PATH /home/username:$LD_LIBRARY_PATH     # if you're a 
 Setting the `LD_LIBRARY_PATH` is not considered ideal because your modification will disappear if you ever close your terminal.  To make this change permanent, put the above line in your login script (which might be named `.login`, `.cshrc`, `.bashrc`, `.profile`...).  You can test `LD_LIBRARY_PATH` by
 
 {{{
-linux> echo $LD_LIBRARY_PATH
+% echo $LD_LIBRARY_PATH
 }}}
 
 to make sure it still contains `/home/username`.
 
-Now that Minuit is installed and Linux knows where, you're ready to install pyminuit.  Move to your new `pyminuit` directory and run the installation script, passing your desired installation destination as a `--home`.
+Now that Minuit is installed and Linux knows where, you're ready to install !PyMinuit.  Move to your new `pyminuit` directory and run the installation script, passing your desired installation destination as a `--home`.
 
 {{{
-linux> cd ../pyminuit
-linux> python setup.py install --home=/home/username
+% cd ../pyminuit
+% python setup.py install --home=/home/username
 }}}
 
 If there are no errors, you only need to set `PYTHONPATH` in the same way as you did `LD_LIBRARY_PATH` (that is, in your login script) and you'll be done!
 
 {{{
-linux> export PYTHONPATH=/home/username/lib/python:$PYTHONPATH     # if you're an sh/bash/zsh user
-linux> setenv PYTHONPATH /home/username/lib/python:$PYTHONPATH     # if you're a csh/tcsh user
+% export PYTHONPATH=/home/username/lib/python:$PYTHONPATH     # if you're an sh/bash/zsh user
+% setenv PYTHONPATH /home/username/lib/python:$PYTHONPATH     # if you're a csh/tcsh user
 }}}
+
+Be sure to save this to your login script, so that this installation will continue to work in new terminals.
 
 To perform a fair test of Python's ability to find !PyMinuit, first move out of your installation directory, so that Python doesn't simply access the local copy.
 
 {{{
-linux>cd
-linux>python
+% cd
+% python
 Python 2.4.3 (#2, Oct  6 2006, 07:52:30) 
 [GCC 4.0.3 (Ubuntu 4.0.3-1ubuntu5)] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import minuit
->>> (no error messages!)
+>>> # (no error messages!)
 }}}
 
 If that worked, move on to the [GettingStartedGuide Getting Started Guide] and have fun with your new function minimizer!
 
-==If something goes wrong==
+==3. If something goes wrong==
 
-If you have any suggestions for improving the installation process,
-please add it to [http://code.google.com/p/pyminuit/issues/list my issues list].
+If you have any suggestions for improving the installation process, please add it to the [http://code.google.com/p/pyminuit/issues/list Issues Tab].
 
 Be sure to tell me whether the following files exist:
 {{{
