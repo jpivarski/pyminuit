@@ -179,11 +179,10 @@ If you have any suggestions for improving the installation process, please add i
 
 Be sure to tell me whether the following files exist:
 {{{
-.../pyminuit/Minuit-1_7_9
-.../pyminuit/Minuit-1_7_9/src/.libs/liblcg_Minuit.*
-.../pyminuit/build
-~/lib/liblcg_Minuit*
-~/lib/python/minuit.so
+Minuit-1_7_9/src/.libs/liblcg_Minuit.*
+pyminuit/build
+/home/username/lib/liblcg_Minuit*
+/home/username/lib/python/minuit.so
 /usr/lib/liblcg_Minuit*
 /usr/lib/python/minuit.so
 }}}
