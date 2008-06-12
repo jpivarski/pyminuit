@@ -143,6 +143,14 @@ Setting the `LD_LIBRARY_PATH` is not considered ideal because your modification 
 
 to make sure it still contains `/home/username`.
 
+(Note: a user reported having to additionally set the following
+{{{
+% export CPPFLAGS="-I/home/username/include"
+% export LDFLAGS="-I/home/username/lib"
+% python setup.py build
+}}}
+at this point in the procedure.  While I don't know why this isn't necessary on my computer, I do know that it won't hurt.  You're free to comment on [http://code.google.com/p/pyminuit/issues/detail?id=4 the issues page] and if possible, help me streamline this process.)
+
 Now that Minuit is installed and Linux knows where, you're ready to install !PyMinuit.  Move to your new `pyminuit` directory and run the installation script, passing your desired installation destination as a `--home`.
 
 {{{
