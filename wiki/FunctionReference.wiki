@@ -114,6 +114,7 @@ Runs Minuit's famous MIGRAD algorithm, an optimized gradient-based minimum searc
 
 This function sets the following
 || `values` || parameter values which minimize the function ||
+|| `args` || parameter values as an ordered tuple, for evaluation like `f(*m.args)` ||
 || `errors` || variations in parameters which raise the function value by `up` ||
 || `covariance` || the full covariance matrix (second derivative) at the minimum ||
 || `fval` || function value at the minimum ||
@@ -290,6 +291,39 @@ A dictionary from parameter names to their current values.  Dictionaries can be 
 As illustrated by the above example, you can set entries of `values` by hand to try to improve the starting point for a minimization algorithm.
 
 You are free to add keys to this dictionary which don't correspond to any parameters at your own peril (risk of confusing yourself).  !PyMinuit will ignore any entries which do not correspond to parameter names.
+
+=== args ===
+
+A tuple of the current values which can be passed as arguments to your function.  The following example illustrates its use:
+{{{
+>>> def f(x, a, b): return a*x + b
+...
+>>> data = [(1,1), (2,2), (3,4), (4,5)]
+>>> def chi2(a, b):
+...     s = 0.
+...     for x, y in data:
+...         theory = f(x, a, b)
+...         s += (theory - y)**2
+...     return s
+...
+>>> m = minuit.Minuit(chi2, b=5, a=10)
+>>> m.values
+{'a': 10.0, 'b': 5.0}
+>>> m.args
+(10.0, 5.0)
+>>> m.migrad()
+>>> m.values
+{'a': 1.3999999999987338, 'b': -0.50000000000329692}
+>>> m.args
+(1.3999999999987338, -0.50000000000329692)
+>>> for x in (1, 2, 3, 4):
+...     print f(x, *m.args)
+...
+0.899999999995
+2.29999999999
+3.69999999999
+5.09999999999
+}}}
 
 === errors ===
 
