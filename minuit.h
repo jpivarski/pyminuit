@@ -26,6 +26,7 @@
 #include "Minuit/MnUserParameters.h"
 #include "Minuit/MnUserParameterState.h"
 #include "Minuit/MinuitParameter.h"
+#include "Minuit/MnSimplex.h"
 #include "Minuit/MnMigrad.h"
 #include "Minuit/FunctionMinimum.h"
 #include "Minuit/MnHesse.h"
@@ -79,6 +80,7 @@ typedef struct {
       PyObject *fixed;
       PyObject *limits;
       PyObject *values;
+      PyObject *args;
       PyObject *errors;
       PyObject *merrors;
       PyObject *covariance;
@@ -93,6 +95,7 @@ typedef struct {
 static int minuit_Minuit_init(minuit_Minuit* self, PyObject* args, PyObject* kwds);
 static int minuit_Minuit_dealloc(minuit_Minuit* self);
 bool minuit_prepare(minuit_Minuit *self, int &maxcalls, std::vector<std::string> &floating);
+static PyObject* minuit_Minuit_simplex(minuit_Minuit* self);
 static PyObject* minuit_Minuit_migrad(minuit_Minuit* self);
 static PyObject* minuit_Minuit_hesse(minuit_Minuit* self);
 static PyObject* minuit_Minuit_minos(minuit_Minuit* self, PyObject* args);

@@ -32,6 +32,7 @@ static PyMemberDef minuit_Minuit_members[] = {
    {"fixed", T_OBJECT, offsetof(minuit_Minuit, fixed), 0, "Dictionary of fixed parameters; maps parameter strings to True/False."},
    {"limits", T_OBJECT, offsetof(minuit_Minuit, limits), 0, "Dictionary of domain limits; maps parameter strings to (low, high) or None for\nunconstrained fitting."},
    {"values", T_OBJECT, offsetof(minuit_Minuit, values), 0, "Dictionary of parameter values or starting points."},
+   {"args", T_OBJECT, offsetof(minuit_Minuit, args), 0, "Tuple of parameters or starting points in the order of the objective function's argument list."},
    {"errors", T_OBJECT, offsetof(minuit_Minuit, errors), 0, "Dictionary of parameter errors or starting step sizes."},
    {"merrors", T_OBJECT, offsetof(minuit_Minuit, merrors), READONLY, "Dictionary of all MINOS errors that have been calculated so far."},
    {"covariance", T_OBJECT, offsetof(minuit_Minuit, covariance), READONLY, "Covariance matrix as a dictionary; maps pairs of parameter strings to matrix\nelements."},
@@ -40,13 +41,14 @@ static PyMemberDef minuit_Minuit_members[] = {
    {"fval", T_OBJECT, offsetof(minuit_Minuit, fval), READONLY, "The current minimum value of the objective function."},
    {"ncalls", T_INT, offsetof(minuit_Minuit, ncalls), READONLY, "The number of times the objective function has been called: also known as NFCN."},
    {"edm", T_OBJECT, offsetof(minuit_Minuit, edm), READONLY, "The current estimated vertical distance to the minimum."},
-   {"parameters", T_OBJECT, offsetof(minuit_Minuit, parameters), READONLY, "A tuple of parameters, in the order of the objective function's argument list."},
+   {"parameters", T_OBJECT, offsetof(minuit_Minuit, parameters), READONLY, "A tuple of parameter names, in the order of the objective function's argument list."},
 
    {NULL}
 };
 
 static PyMethodDef minuit_Minuit_methods[] = {
-   {"migrad", (PyCFunction)(minuit_Minuit_migrad), METH_NOARGS, "Attempt to minimize the function.  No output if successful: see member values\nand errors."},
+   {"simplex", (PyCFunction)(minuit_Minuit_simplex), METH_NOARGS, "Attempt to minimize the function with the Simplex algorithm (not recommended).  No output if successful: see member values\nand errors."},
+   {"migrad", (PyCFunction)(minuit_Minuit_migrad), METH_NOARGS, "Attempt to minimize the function with the MIGRAD algorithm (recommended).  No output if successful: see member values\nand errors."},
    {"hesse", (PyCFunction)(minuit_Minuit_hesse), METH_NOARGS, "Measure the covariance matrix with the current values."},
    {"minos", (PyCFunction)(minuit_Minuit_minos), METH_VARARGS, "Measure non-linear error bounds after minimization.  For all parameters, pass\nno arguments; for one parameter, pass parameter name and number of sigmas\n(negative for the other side)."},
    {"contour", (PyCFunction)(minuit_Minuit_contour), METH_VARARGS | METH_KEYWORDS, "Measure a 2-dimensional contour line, given two parameter strings, a number of\nsigmas, and (optionally) a number of points."},
@@ -106,6 +108,7 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
    self->fixed = NULL;
    self->limits = NULL;
    self->values = NULL;
+   self->args = NULL;
    self->errors = NULL;
    self->merrors = NULL;
    self->covariance = NULL;
@@ -173,6 +176,7 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
    self->fixed = PyDict_New();
    self->limits = PyDict_New();
    self->values = PyDict_New();
+   self->args = Py_BuildValue("O", Py_None);
    self->errors = PyDict_New();
    self->merrors = PyDict_New();
    self->covariance = Py_BuildValue("O", Py_None);
@@ -182,10 +186,15 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
 
    self->upar = new MnUserParameters();
 
-   for (int i = 0;  i < PyTuple_Size(self->parameters);  i++) {
+   Py_DECREF(self->args);
+   self->args = PyTuple_New(self->npar);
+
+   for (int i = 0;  i < self->npar;  i++) {
       PyObject *param = PyTuple_GetItem(self->parameters, i);
       if (!PyString_Check(param)) {
 	 PyErr_SetString(PyExc_RuntimeError, "function.func_code.co_varnames must be a tuple of strings.");
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
 	 return -1;
       }
 
@@ -195,6 +204,8 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
       if (kwds != 0  &&  PyDict_Contains(kwds, param) == 1) {
 	 if (!PyNumber_Check(PyDict_GetItem(kwds, param))) {
 	    PyErr_SetString(PyExc_TypeError, "All values must be numbers.");
+	    Py_DECREF(self->args);
+	    self->args = Py_BuildValue("O", Py_None);
 	    return -1;
 	 }
 	 value = PyFloat_AsDouble(PyDict_GetItem(kwds, param));
@@ -203,14 +214,24 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
       PyObject *pyvalue = Py_BuildValue("d", value);
       if (PyDict_SetItem(self->values, param, pyvalue) != 0) {
 	 Py_DECREF(pyvalue);
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
 	 return -1;
       }
-      Py_DECREF(pyvalue);
+
+      if (PyTuple_SetItem(self->args, i, pyvalue) != 0) {
+	 Py_DECREF(pyvalue);
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
+	 return -1;
+      }
 
       PyObject *err_param = PyString_FromFormat("err_%s", PyString_AsString(param));
       if (kwds != 0  &&  PyDict_Contains(kwds, err_param) == 1) {
 	 if (!PyNumber_Check(PyDict_GetItem(kwds, err_param))) {
 	    PyErr_SetString(PyExc_TypeError, "All errors must be numbers.");
+	    Py_DECREF(self->args);
+	    self->args = Py_BuildValue("O", Py_None);
 	    return -1;
 	 }
 	 error = PyFloat_AsDouble(PyDict_GetItem(kwds, err_param));
@@ -232,11 +253,15 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
 	 fixvalue = PyDict_GetItem(kwds, fix_param);
 	 if (fixvalue != Py_True  &&  fixvalue != Py_False) {
 	    PyErr_Format(PyExc_TypeError, "fix_%s must be True or False.", PyString_AsString(param));
+	    Py_DECREF(self->args);
+	    self->args = Py_BuildValue("O", Py_None);
 	    return -1;
 	 }
       }
 
       if (PyDict_SetItem(self->fixed, param, fixvalue) != 0) {
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
 	 return -1;
       }
 
@@ -247,20 +272,28 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
 	 if (limitvalue != Py_None) {
 	    if (!(PyTuple_Check(limitvalue)  &&  PyTuple_Size(limitvalue) == 2)) {
 	       PyErr_Format(PyExc_TypeError, "limit_%s must be None or (low, high).", PyString_AsString(param));
+	       Py_DECREF(self->args);
+	       self->args = Py_BuildValue("O", Py_None);
 	       return -1;
 	    }
 	    if (!PyNumber_Check(PyTuple_GetItem(limitvalue, 0))) {
 	       PyErr_Format(PyExc_TypeError, "limit_%s[0] (lower limit) must be a number.", PyString_AsString(param));
+	       Py_DECREF(self->args);
+	       self->args = Py_BuildValue("O", Py_None);
 	       return -1;
 	    }
 	    if (!PyNumber_Check(PyTuple_GetItem(limitvalue, 1))) {
 	       PyErr_Format(PyExc_TypeError, "limit_%s[1] (upper limit) must be a number.", PyString_AsString(param));
+	       Py_DECREF(self->args);
+	       self->args = Py_BuildValue("O", Py_None);
 	       return -1;
 	    }
 	 }
       }
 
       if (PyDict_SetItem(self->limits, param, limitvalue) != 0) {
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
 	 return -1;
       }
 
@@ -287,6 +320,7 @@ static int minuit_Minuit_dealloc(minuit_Minuit *self) {
    if (self->fixed != NULL) Py_DECREF(self->fixed);
    if (self->limits != NULL) Py_DECREF(self->limits);
    if (self->values != NULL) Py_DECREF(self->values);
+   if (self->args != NULL) Py_DECREF(self->args);
    if (self->errors != NULL) Py_DECREF(self->errors);
    if (self->merrors != NULL) Py_DECREF(self->merrors);
    if (self->covariance != NULL) Py_DECREF(self->covariance);
@@ -461,6 +495,168 @@ bool minuit_prepare(minuit_Minuit *self, int &maxcalls, std::vector<std::string>
    return true;
 }
 
+static PyObject *minuit_Minuit_simplex(minuit_Minuit *self) {
+   int maxcalls = 0;
+   std::vector<std::string> floating;
+   if (!minuit_prepare(self, maxcalls, floating)) {
+      return NULL;
+   }
+
+   MnSimplex simplex(*self->myfcn, *self->upar, self->strategy);
+
+   if (self->min != NULL) {
+      delete self->min;
+      self->min = NULL;
+   }
+
+   try {
+      self->min = new FunctionMinimum(simplex(maxcalls, self->tol));
+   }
+   catch (ExceptionDuringMinimization theException) {
+      if (self->min != NULL) {
+	 delete self->min;
+	 self->min = NULL;
+      }
+      return NULL;
+   }
+
+   Py_DECREF(self->fval);
+   self->fval = PyFloat_FromDouble(self->min->fval());
+
+   self->ncalls = self->min->nfcn();
+
+   Py_DECREF(self->edm);
+   self->edm = PyFloat_FromDouble(self->min->edm());
+
+   Py_DECREF(self->args);
+   self->args = PyTuple_New(self->npar);
+
+   for (int i = 0;  i < self->npar;  i++) {
+      PyObject *value = PyFloat_FromDouble(self->min->userParameters().value(i));
+      if (PyDict_SetItemString(self->values, self->upar->name(i), value) != 0) {
+	 Py_DECREF(value);
+	 if (self->min != NULL) {
+	    delete self->min;
+	    self->min = NULL;
+	 }
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
+	 return NULL;
+      }
+      
+      if (PyTuple_SetItem(self->args, i, value) != 0) {
+	 Py_DECREF(value);
+	 if (self->min != NULL) {
+	    delete self->min;
+	    self->min = NULL;
+	 }
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
+	 return NULL;
+      }
+
+      PyObject *error = PyFloat_FromDouble(self->min->userParameters().error(i));
+      if (PyDict_SetItemString(self->errors, self->upar->name(i), error) != 0) {
+	 Py_DECREF(error);
+	 if (self->min != NULL) {
+	    delete self->min;
+	    self->min = NULL;
+	 }
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
+	 return NULL;
+      }
+      Py_DECREF(error);
+   }
+
+   if (self->min->hasValidCovariance()) {
+      MnUserCovariance ucov(self->min->userCovariance());
+      PyObject *cov = PyDict_New();
+
+      for (unsigned int i = 0;  i < floating.size();  i++) {
+	 for (unsigned int j = 0;  j < floating.size();  j++) {
+	    PyObject *key = Py_BuildValue("ss", floating[i].c_str(), floating[j].c_str());
+	    if (key == NULL) {
+	       Py_DECREF(cov);
+	       if (self->min != NULL) {
+		  delete self->min;
+		  self->min = NULL;
+	       }
+	       return NULL;
+	    }
+
+	    PyObject *val = PyFloat_FromDouble(ucov(i, j));
+	    if (val == NULL) {
+	       Py_DECREF(cov);
+	       Py_DECREF(key);
+	       if (self->min != NULL) {
+		  delete self->min;
+		  self->min = NULL;
+	       }
+	       return NULL;
+	    }
+	    
+	    if (PyDict_SetItem(cov, key, val) != 0) {
+	       Py_DECREF(cov);
+	       if (self->min != NULL) {
+		  delete self->min;
+		  self->min = NULL;
+	       }
+	       return NULL;
+	    }
+
+	    Py_DECREF(key);
+	    Py_DECREF(val);
+	 }
+      }
+
+      Py_DECREF(self->covariance);
+      self->covariance = cov;
+      // one reference to cov == self->covariance is already counted
+   }
+   else {
+      Py_DECREF(self->covariance);
+      self->covariance = Py_BuildValue("O", Py_None);
+   }
+
+   if (!self->min->isValid()) {
+      if (self->min->hasReachedCallLimit()) {
+	 PyErr_SetString(PyExc_MinuitError, "Minuit reached the specified call limit (maxcalls).");
+      }
+      else if (self->min->isAboveMaxEdm()) {
+	 PyErr_SetString(PyExc_MinuitError, "Function value is above the specified estimated distance to the minimum (edm).");
+      }
+      else if (!self->min->hasPosDefCovar()) {
+	 PyErr_SetString(PyExc_MinuitError, "Covariance is not positive definite.");
+      }
+      else if (!self->min->hasMadePosDefCovar()) {
+	 PyErr_SetString(PyExc_MinuitError, "Covariance could not be made positive definite.");
+      }
+      else if (!self->min->hasAccurateCovar()) {
+	 PyErr_SetString(PyExc_MinuitError, "Covariance is not accurate.");
+      }
+      else if (!self->min->hasValidCovariance()) {
+	 PyErr_SetString(PyExc_MinuitError, "Covariance is not valid.");
+      }
+      else if (self->min->hesseFailed()) {
+	 PyErr_SetString(PyExc_MinuitError, "HESSE failed.");
+      }
+      else if (!self->min->hasValidParameters()) {
+	 PyErr_SetString(PyExc_MinuitError, "Parameters are not valid.");
+      }
+      else {
+	 PyErr_SetString(PyExc_MinuitError, "Minuit failed.");
+      }
+      if (self->min != NULL) {
+	 delete self->min;
+	 self->min = NULL;
+      }
+      return NULL;
+   }
+
+   return Py_BuildValue("O", Py_None);
+}
+
 static PyObject *minuit_Minuit_migrad(minuit_Minuit *self) {
    int maxcalls = 0;
    std::vector<std::string> floating;
@@ -494,6 +690,9 @@ static PyObject *minuit_Minuit_migrad(minuit_Minuit *self) {
    Py_DECREF(self->edm);
    self->edm = PyFloat_FromDouble(self->min->edm());
 
+   Py_DECREF(self->args);
+   self->args = PyTuple_New(self->npar);
+
    for (int i = 0;  i < self->npar;  i++) {
       PyObject *value = PyFloat_FromDouble(self->min->userParameters().value(i));
       if (PyDict_SetItemString(self->values, self->upar->name(i), value) != 0) {
@@ -502,9 +701,21 @@ static PyObject *minuit_Minuit_migrad(minuit_Minuit *self) {
 	    delete self->min;
 	    self->min = NULL;
 	 }
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
 	 return NULL;
       }
-      Py_DECREF(value);
+      
+      if (PyTuple_SetItem(self->args, i, value) != 0) {
+	 Py_DECREF(value);
+	 if (self->min != NULL) {
+	    delete self->min;
+	    self->min = NULL;
+	 }
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
+	 return NULL;
+      }
 
       PyObject *error = PyFloat_FromDouble(self->min->userParameters().error(i));
       if (PyDict_SetItemString(self->errors, self->upar->name(i), error) != 0) {
@@ -513,6 +724,8 @@ static PyObject *minuit_Minuit_migrad(minuit_Minuit *self) {
 	    delete self->min;
 	    self->min = NULL;
 	 }
+	 Py_DECREF(self->args);
+	 self->args = Py_BuildValue("O", Py_None);
 	 return NULL;
       }
       Py_DECREF(error);
