@@ -294,7 +294,7 @@ You are free to add keys to this dictionary which don't correspond to any parame
 
 === args ===
 
-A tuple of the current values which can be passed as arguments to your function.  The following example illustrates its use:
+A read-only tuple of the current values which can be passed as arguments to your function.  The following example illustrates its use:
 {{{
 >>> def f(x, a, b): return a*x + b
 ...
