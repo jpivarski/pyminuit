@@ -124,6 +124,10 @@ The `minos()` function does not guarantee the correctness of `errors` and `covar
 
 If the MIGRAD algorithm fails, `migrad()` will throw a `MinuitError` exception.
 
+=== simplex() ===
+
+Runs Minuit's less-famous SIMPLEX algorithm.  This also minimizes functions, so it takes all the same inputs as `migrad()`.  The only difference, apart from the relative performance of the algorithms, is that SIMPLEX does not calculate a covariance matrix, so `covariance` will still be `None` after invocation.
+
 === hesse() ===
 
 Run's Minuit's HESSE algorithm for calculating a Hessian covariance matrix of second derivatives at the current parameter values.  If applied after `migrad()`, these are the values needed to raise the function's value by one sigma (defined by `up`), assuming that the function is parabolic near the minimum.
