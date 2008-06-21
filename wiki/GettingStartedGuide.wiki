@@ -261,7 +261,7 @@ The `scan()` function can also produce plotter-friendly output by setting `outpu
  
 If you actually want to fit anything, you need to write a chi^2^ or negative log likelihood function.
 {{{
->>> data = [(1,1.1,0.1), (2,1.9,0.1), (3,2.9,0.1), (4,4.1,0.1)]
+>>> data = [(1, 1.1, 0.1), (2, 2.1, 0.1), (3, 2.4, 0.2), (4, 4.3, 0.1)]
 >>> def f(x, a, b): return a + b*x
 ... 
 >>> def chi2(a, b):
@@ -274,11 +274,18 @@ If you actually want to fit anything, you need to write a chi^2^ or negative log
 >>> m.migrad()
 >>> m.hesse()
 >>> m.values
-{'a': -2.1538326677728037e-14, 'b': 0.99999999999998801}
+{'a': -4.8538950636611844e-13, 'b': 1.0451612903223784}
 >>> m.errors
-{'a': 0.12247448601958956, 'b': 0.04472135917807836}
+{'a': 0.12247448677828, 'b': 0.045790546904858835}
 >>> m.matrix(correlation=True)
-((1.0, -0.91287092769600364), (-0.91287092769600375, 1.0))
+((1.0, -0.89155582779537212), (-0.89155582779537224, 1.0))
+>>> for x in 1, 2, 3, 4:
+...     print x, f(x, *m.args)
+... 
+1 1.04516129032
+2 2.09032258064
+3 3.13548387097
+4 4.18064516129
 }}}
 
 But with access to the low-level function minimization, you can do much more complicated fits, such as simultaneous fits to different distributions, which are difficult to express in a high-level application.
