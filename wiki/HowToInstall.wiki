@@ -10,7 +10,7 @@ The installation has been tested on Windows and Ubuntu Linux.  If you have any o
 Download both of the following:
 
     * [http://pyminuit.googlecode.com/files/Minuit-1_7_9.tar.gz Minuit-1_7_9.tar.gz]
-    * [http://pyminuit.googlecode.com/files/pyminuit-1.1.0.tgz pyminuit-1.1.0.tgz]
+    * [http://pyminuit.googlecode.com/files/pyminuit-1.1.0.tgz pyminuit-1.1.0.tgz] or [http://pyminuit.googlecode.com/files/pyminuit-1.1.0.tgz pyminuit-1.1.0.zip]
 
 and unpack (unarchive) them in a convenient directory.  Your browser might do this step automatically.
 
@@ -71,7 +71,7 @@ Change directories to your new `Minuit-1_7_9` directory and build that first.  (
 
 The `configure` and `make` commands should produce a lot of output, hopefully not ending with an error message (something with "Exit 1" at the end).  If only the `make install` command fails (possibly because you don't have root access on your computer to install it in the standard location), you can still use !PyMinuit, you just need to tell your computer where the Minuit libraries are.
 
-Now switch to your `pyminuit` directory and run its installation script:
+Now switch to your `pyminuit` directory and run its installation script, telling `setup.py` where to find the Minuit-1_7_9 directory you downloaded:
 
 {{{
 % cd ../pyminuit
@@ -90,10 +90,12 @@ To use !PyMinuit, your computer needs to know where the Minuit libraries are and
 Otherwise, set your `LD_LIBRARY_PATH` and `PYTHONPATH` environment variables like the following.  (The values you set below to will depend on where you compiled Minuit-1_7_9 and where you installed !PyMinuit.  Edit them accordingly!)
 
 {{{
-% export LD_LIBRARY_PATH=/location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH     # if you're an sh/bash/zsh user
+% # if you're an sh/bash/zsh user
+% export LD_LIBRARY_PATH=/location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH
 % export PYTHONPATH=/your/home/lib/python:$PYTHONPATH
 
-% setenv LD_LIBRARY_PATH /location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH     # if you're a csh/tcsh user
+% # if you're a csh/tcsh user
+% setenv LD_LIBRARY_PATH /location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH
 % setenv PYTHONPATH /your/home/lib/python:$PYTHONPATH
 }}}
 
@@ -106,7 +108,7 @@ Pointing to your software installation with environment variables is not ideal b
 % echo $PYTHONPATH
 }}}
 
-to make sure they're still set up properly.
+to make sure they're still set up properly in a new terminal.
 
 == 3. Try it out! ==
 
