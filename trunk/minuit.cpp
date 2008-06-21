@@ -32,7 +32,7 @@ static PyMemberDef minuit_Minuit_members[] = {
    {"fixed", T_OBJECT, offsetof(minuit_Minuit, fixed), 0, "Dictionary of fixed parameters; maps parameter strings to True/False."},
    {"limits", T_OBJECT, offsetof(minuit_Minuit, limits), 0, "Dictionary of domain limits; maps parameter strings to (low, high) or None for\nunconstrained fitting."},
    {"values", T_OBJECT, offsetof(minuit_Minuit, values), 0, "Dictionary of parameter values or starting points."},
-   {"args", T_OBJECT, offsetof(minuit_Minuit, args), 0, "Tuple of parameters or starting points in the order of the objective function's argument list."},
+   {"args", T_OBJECT, offsetof(minuit_Minuit, args), READONLY, "Tuple of parameters or starting points in the order of the objective function's argument list."},
    {"errors", T_OBJECT, offsetof(minuit_Minuit, errors), 0, "Dictionary of parameter errors or starting step sizes."},
    {"merrors", T_OBJECT, offsetof(minuit_Minuit, merrors), READONLY, "Dictionary of all MINOS errors that have been calculated so far."},
    {"covariance", T_OBJECT, offsetof(minuit_Minuit, covariance), READONLY, "Covariance matrix as a dictionary; maps pairs of parameter strings to matrix\nelements."},
