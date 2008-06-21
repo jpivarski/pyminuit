@@ -317,12 +317,12 @@ A tuple of the current values which can be passed as arguments to your function.
 >>> m.args
 (1.3999999999987338, -0.50000000000329692)
 >>> for x in (1, 2, 3, 4):
-...     print f(x, *m.args)
+...     print x, f(x, *m.args)
 ...
-0.899999999995
-2.29999999999
-3.69999999999
-5.09999999999
+1, 0.899999999995
+2, 2.29999999999
+3, 3.69999999999
+4, 5.09999999999
 }}}
 
 === errors ===
