@@ -457,8 +457,9 @@ bool minuit_prepare(minuit_Minuit *self, int &maxcalls, std::vector<std::string>
 	 }
 
 	 self->upar->removeLimits(i);
-	 self->upar->setLowerLimit(i, PyFloat_AsDouble(PyTuple_GetItem(limit, 0)));
-	 self->upar->setUpperLimit(i, PyFloat_AsDouble(PyTuple_GetItem(limit, 1)));
+	 self->upar->setLimits(i, PyFloat_AsDouble(PyTuple_GetItem(limit, 0)), PyFloat_AsDouble(PyTuple_GetItem(limit, 1)));
+// 	 self->upar->setLowerLimit(i, PyFloat_AsDouble(PyTuple_GetItem(limit, 0)));
+// 	 self->upar->setUpperLimit(i, PyFloat_AsDouble(PyTuple_GetItem(limit, 1)));
       }
       else {
 	 PyErr_Format(PyExc_TypeError, "limits[\"%s\"] must be None or (low, high).", self->upar->name(i));
@@ -1011,7 +1012,7 @@ static PyObject *minuit_Minuit_contour(minuit_Minuit *self, PyObject *args, PyOb
    char *param1, *param2;
    double sigmas;
    int npoints = 20;
-   static char *kwlist[] = {"param1", "param2", "sigmas", "npoints"};
+   static char *kwlist[] = {"param1", "param2", "sigmas", "npoints", NULL};
    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ssd|i", kwlist, &param1, &param2, &sigmas, &npoints)) {
       PyErr_SetString(PyExc_TypeError, "Arguments are: param1, param2, number of sigmas, and optionally approximate number of points (20).");
       return NULL;
