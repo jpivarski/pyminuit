@@ -24,7 +24,7 @@ import os, subprocess
 ##################################################################################################
 
 setup(name="pyMinuit",
-      version="1.0.2",
+      version="1.1.2",
       description="pyMinuit: Minuit interface for minimizing Python functions",
       author="Jim Pivarski",
       author_email="jpivarski@gmail.com",
