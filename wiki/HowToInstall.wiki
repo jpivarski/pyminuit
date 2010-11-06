@@ -3,7 +3,7 @@
 
 I have re-written the installation procedure to be more robust, so that !PyMinuit will be installed correctly on the first try for a wider variety of computers.  This page may look daunting, but when you get into it, you'll see that the instructions are all step-by-step.  By walking through the process in a pedestrian manner, rather than balling it up in an automated script, you would be better able to diagnose problem if something goes wrong or have more information when [HowToInstall#If_something_goes_wrong requesting help].
 
-The installation has been tested on Windows and Ubuntu Linux.  If you have any other Linux distribution, any other variant of Unix, or even a Mac, try the "Linux instructions" and let me know if it works!
+The installation has been tested on Windows and Ubuntu Linux.  If you have any other Linux distribution, any other variant of Unix, including Mac OS X, try the "Linux instructions" and let me know if it works!
 
 == 1. Download ==
 
@@ -97,6 +97,10 @@ Otherwise, set your `LD_LIBRARY_PATH` and `PYTHONPATH` environment variables lik
 % # if you're a csh/tcsh user
 % setenv LD_LIBRARY_PATH /location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH
 % setenv PYTHONPATH /your/home/lib/python:$PYTHONPATH
+
+% # if you're a Mac OS X user
+% export DYLD_LIBRARY_PATH=/location/of/Minuit-1_7_9/src/.libs:$DY_LIBRARY_PATH
+% export PYTHONPATH=/your/home/lib/python:$PYTHONPATH
 }}}
 
 (The command `echo $SHELL` will tell you the name of your shell, and therefore which syntax to use.)
