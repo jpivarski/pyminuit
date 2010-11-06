@@ -102,8 +102,8 @@ Otherwise, set your `LD_LIBRARY_PATH` and `PYTHONPATH` environment variables lik
 % setenv LD_LIBRARY_PATH /location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH
 % setenv PYTHONPATH /your/home/lib/python:$PYTHONPATH
 
-% # if you're a Mac OS X user
-% export DYLD_LIBRARY_PATH=/location/of/Minuit-1_7_9/src/.libs:$DY_LIBRARY_PATH   # if your folder names have spaces, put quotes around the whole path
+% # if you're a Mac OS X user (if your folder names have spaces, put quotes around the whole path)
+% export DYLD_LIBRARY_PATH=/location/of/Minuit-1_7_9/src/.libs:$DY_LIBRARY_PATH
 % export PYTHONPATH=/your/home/lib/python:$PYTHONPATH
 }}}
 
