@@ -108,7 +108,7 @@ Otherwise, set your `LD_LIBRARY_PATH` and `PYTHONPATH` environment variables lik
 Pointing to your software installation with environment variables is not ideal because the modification will disappear if you ever close your terminal.  To make this change permanent, put the above lines in your login script (which might be named `.login`, `.cshrc`, `.bashrc`, `.profile`...).  You can test their values by
 
 {{{
-% echo $LD_LIBRARY_PATH
+% echo $LD_LIBRARY_PATH   # or $DYLD_LIBRARY_PATH on a Mac
 % echo $PYTHONPATH
 }}}
 
