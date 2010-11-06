@@ -30,7 +30,7 @@ Next, add the location of your new `MSYS/bin` directory to your Windows `Path` v
 
 (Naturally, you'll also need to have [http://python.org/download/ Python for Windows] installed.)
 
-(See the comment at the bottom of this page by Edwardo.  I don't have a Windows computer to test it.)
+(See the comment at the bottom of this page by Eduardo.  I don't have a Windows computer to test it.)
 
 == 2. Installing on Windows ==
 
