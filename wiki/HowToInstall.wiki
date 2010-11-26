@@ -62,13 +62,13 @@ C:\pyminuit>python setup.py install build -c mingw32 --with-minuit=/location/of/
 
 == 2. Installing on Linux/Unix/Mac ==
 
-On end-user-centric distributions like Ubuntu and Mac OS X, it is necessary to first install a compiler.  On Ubuntu, this can be done with
+For end-user-centric distributions like Ubuntu and Mac OS X, it is necessary to first install a compiler.  On Ubuntu, you need to download both the compiler and the header files for Python (only the end-user Python binaries are installed by default).  You can do that with the following command line:
 
 {{{
 sudo apt-get install g++ python-dev
 }}}
 
-and on OS X, install the "XCode" optional package from the installation DVD that came with your Mac.  Python is installed on Ubuntu and OS X by default.
+On OS X, you need to install the "XCode" optional package on the installation DVD that came with your Mac.  The Mac has Python binaries and headers pre-installed.
 
 Change directories to your new `Minuit-1_7_9` directory and build that first.  (Your prompt might look different.)
 
