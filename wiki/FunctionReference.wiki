@@ -103,7 +103,7 @@ To limit the domain of some parameters, prepend the parameter names with `limit_
 
 Runs Minuit's famous MIGRAD algorithm, an optimized gradient-based minimum search.  This function's behavior is affected by the following Minuit data members.  (You can set parameters like this:
 {{{
->>> m.up = 1.
+>>> m.up = 0.5
 }}}
 and check them by printing `m.up`, for example.)
 
