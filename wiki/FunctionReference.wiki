@@ -101,7 +101,12 @@ To limit the domain of some parameters, prepend the parameter names with `limit_
 
 === migrad() ===
 
-Runs Minuit's famous MIGRAD algorithm, an optimized gradient-based minimum search.  This function's behavior is affected by
+Runs Minuit's famous MIGRAD algorithm, an optimized gradient-based minimum search.  This function's behavior is affected by the following Minuit data members.  (You can set parameters like this:
+{{{
+>>> m.up = 1.
+}}}
+and check them by printing `m.up`, for example.)
+
 || `values` || initial starting values ||
 || `errors` || initial step sizes ||
 || `fixed` || parameters held constant ||
@@ -112,7 +117,7 @@ Runs Minuit's famous MIGRAD algorithm, an optimized gradient-based minimum searc
 || `up` || scale factor for 1-sigma errors (1 for chi^2^, 0.5 for -log likelihood) ||
 || `printMode` || 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step ||
 
-This function sets the following
+This function sets the following Minuit data members.  (You can check them by printing `m.values`, for example.)
 || `values` || parameter values which minimize the function ||
 || `args` || parameter values as an ordered tuple, for evaluation like `f(*m.args)` ||
 || `errors` || variations in parameters which raise the function value by `up` ||
