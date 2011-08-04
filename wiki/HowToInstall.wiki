@@ -9,7 +9,7 @@ The installation has been tested on Windows and Ubuntu Linux.  If you have any o
 
 Download both of the following:
 
-    * [http://pyminuit.googlecode.com/files/Minuit-1_7_9.tar.gz Minuit-1_7_9.tar.gz]
+    * [http://code.google.com/p/pyminuit/downloads/detail?name=Minuit-1_7_9-patch1.tar.gz Minuit-1_7_9-patch1.tar.gz]
     * [http://pyminuit.googlecode.com/files/pyminuit-1.1.0.tgz pyminuit-1.1.0.tgz] or [http://pyminuit.googlecode.com/files/pyminuit-1.1.0.zip pyminuit-1.1.0.zip]
 
 and unpack (unarchive) them in a convenient directory.  Your browser might do this step automatically.
