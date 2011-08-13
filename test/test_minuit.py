@@ -57,3 +57,6 @@ class TestClassMethod(unittest.TestCase):
         y = self.minuit.values["y"]
         self.assertAlmostEqual(x,self.xmin,2)
         self.assertAlmostEqual(y,self.ymin,2)
+
+if __name__ == '__main__':
+    unittest.main()

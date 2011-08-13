@@ -21,6 +21,45 @@
 #include "minuit.h"
 #include <iostream>
 
+/*
+ * PyVarObject_HEAD_INIT was added in Python 2.6.  Its use is
+ * necessary to handle both Python 2 and 3.  This replacement
+ * definition is for Python <=2.5
+ */
+#ifndef PyVarObject_HEAD_INIT
+#define PyVarObject_HEAD_INIT(type, size) \
+    PyObject_HEAD_INIT(type) size,
+#endif
+
+#ifndef Py_TYPE
+#define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+    #define MOD_DEF(ob, name, doc, methods) \
+        static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+        ob = PyModule_Create(&moduledef);
+#else
+    #define MOD_DEF(ob, name, doc, methods) \
+        ob = Py_InitModule3(name, methods, doc);
+#endif
+
+/*
+ * Python 3 only has long.
+ */
+#if PY_MAJOR_VERSION >= 3
+#define PyInt_AsLong PyLong_AsLong
+#define PyInt_Check PyLong_Check
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+#define PyString_Check(x) 1
+#define PyString_FromString(x) PyUnicode_FromString(x)
+#define PyString_FromFormat(x,y) PyUnicode_FromFormat(x,y)
+#define PyString_AsString(x) PyUnicode_AS_DATA(x)
+#endif
+
 static PyObject *PyExc_MinuitError;
 
 static PyMemberDef minuit_Minuit_members[] = {
@@ -58,8 +97,7 @@ static PyMethodDef minuit_Minuit_methods[] = {
 };
 
 static PyTypeObject minuit_MinuitType = {
-   PyObject_HEAD_INIT(NULL)
-   0,                         /*ob_size*/
+   PyVarObject_HEAD_INIT(NULL,0)
    "minuit.Minuit",      /*tp_name*/
    sizeof(minuit_Minuit), /*tp_basicsize*/
    0,                         /*tp_itemsize*/
@@ -152,38 +190,34 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
    self->fcn = function;
    Py_INCREF(self->fcn);
 
-   PyObject *func_code = PyObject_GetAttrString(self->fcn, "func_code");
+   PyObject *func_code = PyFunction_GetCode(self->fcn);
    if (func_code == NULL) {
       return -1;
    }
    PyObject *co_varnames = PyObject_GetAttrString(func_code, "co_varnames");
    if (co_varnames == NULL) {
-      Py_DECREF(func_code);
       return -1;
    }
    PyObject *co_argcount = PyObject_GetAttrString(func_code, "co_argcount");
    if (co_argcount == NULL) {
-      Py_DECREF(func_code);
+//      Py_DECREF(func_code);
       Py_DECREF(co_varnames);
       return -1;
    }
    if (!PyTuple_Check(co_varnames)) {
       PyErr_SetString(PyExc_TypeError, "function.func_code.co_varnames must be a tuple.");
-      Py_DECREF(func_code);
       Py_DECREF(co_varnames);
       Py_DECREF(co_argcount);
       return -1;
    }
    if (!PyInt_Check(co_argcount)) {
       PyErr_SetString(PyExc_TypeError, "function.func_code.co_argcount must be an integer.");
-      Py_DECREF(func_code);
       Py_DECREF(co_varnames);
       Py_DECREF(co_argcount);
       return -1;
    }
    if (PyInt_AsLong(co_argcount) < 1) {
       PyErr_SetString(PyExc_TypeError, "This function has no parameters to minimize.");
-      Py_DECREF(func_code);
       Py_DECREF(co_varnames);
       Py_DECREF(co_argcount);
       return -1;
@@ -197,7 +231,6 @@ static int minuit_Minuit_init(minuit_Minuit *self, PyObject *args, PyObject *kwd
       self->parameters = PyTuple_GetSlice(co_varnames, 0, PyInt_AsLong(co_argcount));
    }
 
-   Py_DECREF(func_code);
    Py_DECREF(co_varnames);
    Py_DECREF(co_argcount);
 
@@ -368,7 +401,7 @@ static int minuit_Minuit_dealloc(minuit_Minuit *self) {
    Py_XDECREF(self->fval);
    Py_XDECREF(self->edm);
 
-   self->ob_type->tp_free((PyObject*)self);
+   Py_TYPE(self)->tp_free((PyObject*)self);
    return 0;
 }
 
@@ -1528,19 +1561,36 @@ static PyMethodDef minuit_methods[] = {
    {NULL}
 };
 
-PyMODINIT_FUNC initminuit(void) {
+// Python 3 module initialization
+static PyObject *
+moduleinit(void) {
    PyObject *m;
 
    minuit_MinuitType.tp_new = PyType_GenericNew;
-   if (PyType_Ready(&minuit_MinuitType) < 0) return;
+   if (PyType_Ready(&minuit_MinuitType) < 0) return NULL;
 
-   m = Py_InitModule3("minuit", minuit_methods, "Interface to SEAL Minuit 1.7.9");
+   MOD_DEF(m, "minuit", "Interface to SEAL Minuit 1.7.9", minuit_methods);
+   if (m == NULL){
+       return NULL;
+   }
    Py_INCREF(&minuit_MinuitType);
    PyModule_AddObject(m, "Minuit", (PyObject*)(&minuit_MinuitType));
 
    PyExc_MinuitError = PyErr_NewException("minuit.MinuitError", NULL, NULL);
-   if (PyExc_MinuitError == NULL) return;
+   if (PyExc_MinuitError == NULL) return NULL;
    Py_INCREF(PyExc_MinuitError);
    PyModule_AddObject(m, "MinuitError", PyExc_MinuitError);
+   return m;
 }
 
+#if PY_MAJOR_VERSION < 3
+    PyMODINIT_FUNC initminuit(void)
+    {
+        moduleinit();
+    }
+#else
+    PyMODINIT_FUNC PyInit_minuit(void)
+    {
+        return moduleinit();
+    }
+#endif
