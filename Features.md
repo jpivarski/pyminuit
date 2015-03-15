@@ -1,0 +1,26 @@
+## What Minuit can do ##
+
+Given an arbitrary numerical function of _N_ variables, Minuit searches the parameter space for the minimum value of that function.  This represents a very broad class of applications, but most often, Minuit is used to fit theoretical curves to experimental data.
+
+In addition to finding the minimum, Minuit computes a great deal of information about the region surrounding that minimum, such as the covariance matrix, the second derivative at the minimum in all _N_ dimensions.  In curve-fitting applications, this covariance matrix expresses the uncertainty in the parameters of the fit.  Because the region close to the minimum may be only approximately paraboloid, Minuit can also climb the sides of the well and calculate exact error bounds, presenting the results in one or two dimensions.
+
+## What PyMinuit can access ##
+
+Users of high-energy physics programs like ROOT, PAW, mn\_fit, and HippoDraw have probably accessed Minuit through the curve-fitting utilities.  In some of these programs, it is possible to access Minuit directly, but not easily.  (Sorry, everyone disagrees about what "easy" and "simple" mean.)  PyMinuit provides access to Minuit's low-level minimization routines in a high-level programming environment, Python.
+
+Through PyMinuit, you can
+  * Use any Python function as an objective function (FCN).  Python exceptions will stop the minimization routine, so you should in principle never encounter segmentation faults.
+  * Set starting parameter values and errors (interpreted as starting step sizes).
+  * Fix and release parameters.
+  * Apply two-sided parameter limits (the domain of the function).
+  * Minimize with the MIGRAD or SIMPLEX algorithm.
+  * Set a `printMode` option to print out function and parameter values call-by-call.  Parameter values may be absolute, relative to the starting point, or relative to the previous call.
+  * Compute the covariance matrix at the given point with HESSE.
+  * Express the covariance matrix as a dictionary from parameter name pairs to matrix elements or as a tuple-of-tuples matrix.
+  * Normalize the covariance matrix (that is, calculate the correlation matrix) and optionally skip fixed parameters.
+  * Calculate non-linear MINOS errors, all in one call, or on a parameter, by parameter basis, specifying the desired number of standard deviations from the minimum.
+  * Calculate 2D contours a given number of standard deviations from the minimum.  The result is a list of 2-tuple pairs, to be given to a plotting program.
+  * Scan the function with an _N_-dimensional lattice of points, either at the centers of bins or at the corners.
+  * Set limits on the number of allowed function calls, the tolerance, the Minuit strategy number (0, 1, 2), the `up` parameter (1 for chi<sup>2</sup>, 1/2 for -log likelihood), and access the function value, number of calls in the last command, and estimated distance to the minimum.
+
+

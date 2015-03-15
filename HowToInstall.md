@@ -1,0 +1,153 @@
+I have re-written the installation procedure to be more robust, so that PyMinuit will be installed correctly on the first try for a wider variety of computers.  This page may look daunting, but when you get into it, you'll see that the instructions are all step-by-step.  By walking through the process in a pedestrian manner, rather than balling it up in an automated script, you would be better able to diagnose problem if something goes wrong or have more information when [requesting help](HowToInstall#If_something_goes_wrong.md).
+
+The installation has been tested on Windows and Ubuntu Linux.  If you have any other Linux distribution, any other variant of Unix, including Mac OS X, try the "Linux instructions" and let me know if it works!
+
+## 1. Download ##
+
+Download both of the following:
+
+  * [Minuit-1\_7\_9-patch1.tar.gz](http://code.google.com/p/pyminuit/downloads/detail?name=Minuit-1_7_9-patch1.tar.gz)
+  * [pyminuit-1.2.1.tgz](http://pyminuit.googlecode.com/files/pyminuit-1.2.1.tgz) or [pyminuit-1.2.1.zip](http://pyminuit.googlecode.com/files/pyminuit-1.2.1.zip)
+
+and unpack (unarchive) them in a convenient directory.  Your browser might do this step automatically.
+
+You should now have two new directories, `Minuit-1_7_9` and `pyminuit`.  Minuit is the actual minimization package (in C++) and PyMinuit is the Python interface.  Both will need to be compiled.
+
+### Extra downloads needed for Windows ###
+
+Windows doesn't come with a compiler by default, but there's a compatible compiler available called MinGW.  Download and install both of the following:
+
+  * [MinGW](http://www.mingw.org/) a minimal set of Gnu tools, including the Gnu compiler
+  * [MSYS](http://sourceforge.net/project/showfiles.php?group_id=2435) you only need to download "msysCORE-1.0.11-20071204.tar.bz2"
+
+Next, add the location of your new `MSYS/bin` directory to your Windows `Path` variable:
+  1. Right click on My computer
+  1. choose Properties, Advanced, Environment Variables.
+  1. In the lower list choose to edit the variable named `Path` and add the location to your `MSYS\bin`.
+
+(Naturally, you'll also need to have [Python for Windows](http://python.org/download/) installed.)
+
+(See the comment at the bottom of this page by Eduardo.  I don't have a Windows computer to test it.)
+
+## 2. Installing on Windows ##
+
+Now that you have a compiler and installation directories for `Minuit-1_7_9` and `pyminuit`, let's install them one at a time.
+
+Open a command prompt and change directories to your `Minuit-1_7_9` directory.  Doing so could look like this:
+
+```
+C:\>cd Minuit-1_7_9
+C:\Minuit-1_7_9>
+```
+
+Now compile Minuit.
+
+```
+C:\Minuit-1_7_9>sh configure
+C:\Minuit-1_7_9>make
+C:\Minuit-1_7_9>make install
+```
+
+where each command will generate a lot of output and take a few minutes.  Hopefully, they will not end with an error message (something like "Exit 1" at the end).
+
+Switch to your `pyminuit` directory and run its installation script with these options:
+
+```
+C:\Minuit-1_7_9>cd ..\pyminuit
+C:\pyminuit>python setup.py install build -c mingw32 --with-minuit=/location/of/Minuit-1_7_9
+```
+
+## 2. Installing on Linux/Unix/Mac ##
+
+For end-user-centric distributions like Ubuntu and Mac OS X, it is necessary to first install a compiler.  On Ubuntu, you need to download both the compiler and the header files for Python (only the end-user Python binaries are installed by default).  You can do that with the following command line:
+
+```
+sudo apt-get install g++ python-dev
+```
+
+On OS X, you need to install the "XCode" optional package on the installation DVD that came with your Mac.  The Mac has Python binaries and headers pre-installed.
+
+Change directories to your new `Minuit-1_7_9` directory and build that first.  (Your prompt might look different.)
+
+```
+% cd Minuit-1_7_9
+% ./configure
+% make
+% sudo make install    # or su root, then make install
+```
+
+The `configure` and `make` commands should produce a lot of output, hopefully not ending with an error message (something with "Exit 1" at the end).  If only the `make install` command fails (possibly because you don't have root access on your computer to install it in the standard location), you can still use PyMinuit, you just need to tell your computer where the Minuit libraries are.
+
+Now switch to your `pyminuit` directory and run its installation script, telling `setup.py` where to find the Minuit-1\_7\_9 directory you downloaded:
+
+```
+% cd ../pyminuit
+% python setup.py install --with-minuit=/location/of/Minuit-1_7_9
+```
+
+If you don't have root access, you can install in your home directory (or other directory of your choice) with the `--home=/your/home` argument.
+```
+% python setup.py install --home=~ --with-minuit=/location/of/Minuit-1_7_9
+```
+
+### Setting up environment variables ###
+
+To use PyMinuit, your computer needs to know where the Minuit libraries are and where the PyMinuit package is.  If you have root (superuser) access and have installed everything in the standard locations, you can skip this last step.
+
+Otherwise, set your `LD_LIBRARY_PATH` and `PYTHONPATH` environment variables like the following.  (The values you set below to will depend on where you compiled Minuit-1\_7\_9 and where you installed PyMinuit.  Edit them accordingly!)
+
+```
+% # if you're an sh/bash/zsh user
+% export LD_LIBRARY_PATH=/location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH
+% export PYTHONPATH=/your/home/lib/python:$PYTHONPATH
+
+% # if you're a csh/tcsh user
+% setenv LD_LIBRARY_PATH /location/of/Minuit-1_7_9/src/.libs:$LD_LIBRARY_PATH
+% setenv PYTHONPATH /your/home/lib/python:$PYTHONPATH
+
+% # if you're a Mac OS X user (if your folder names have spaces, put quotes around the whole path)
+% export DYLD_LIBRARY_PATH=/location/of/Minuit-1_7_9/src/.libs:$DY_LIBRARY_PATH
+% export PYTHONPATH=/your/home/lib/python:$PYTHONPATH
+```
+
+(The command `echo $SHELL` will tell you the name of your shell, and therefore which syntax to use.)
+
+Pointing to your software installation with environment variables is not ideal because the modification will disappear if you ever close your terminal.  To make this change permanent, put the above lines in your login script (which might be named `.login`, `.cshrc`, `.bashrc`, `.profile`...).  You can test their values by
+
+```
+% echo $LD_LIBRARY_PATH   # or $DYLD_LIBRARY_PATH on a Mac
+% echo $PYTHONPATH
+```
+
+to make sure they're still set up properly in a new terminal.
+
+## 3. Try it out! ##
+
+This should install PyMinuit such that you can now "import minuit" from a new Python prompt.
+
+```
+C:\pyminuit>cd \
+C:\>python
+Python 2.4.3 (#2, Oct  6 2006, 07:52:30) 
+[GCC 4.0.3 (Windows)] on windows
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import minuit
+>>> # (no error messages!)
+```
+
+If that worked, move on to the [Getting Started Guide](GettingStartedGuide.md) and have fun with your new function minimizer!
+
+## 4. If something goes wrong ##
+
+If you have any suggestions for improving the installation process, please add it to the [Issues Tab](http://code.google.com/p/pyminuit/issues/list).
+
+Be sure to tell me whether the following files exist:
+```
+Minuit-1_7_9/src/.libs/liblcg_Minuit.*
+pyminuit/build
+/home/username/lib/liblcg_Minuit*
+/home/username/lib/python/minuit.so
+/usr/lib/liblcg_Minuit*
+/usr/lib/python/minuit.so
+```
+and whether you are attempting to install in the standard or a non-standard location.

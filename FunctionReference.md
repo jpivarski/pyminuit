@@ -1,0 +1,524 @@
+## minuit module ##
+
+### machine\_precision() ###
+
+Returns the numerical precision of your computer (for the C type `double`).  This function was called EPS in the old FORTRAN Minuit.  Here's how many significant digits to trust in a calculation:
+```
+>>> import minuit, math
+>>> -math.log10(minuit.machine_precision())
+15.051499783199059
+```
+minus a few (for the cumulative effects of round-off errors) is about 12 or 13.
+
+### Minuit extension type ###
+
+minuit.Minuit is a new Python type that represents the state of a minimization procedure.  You create it by giving it an objective function, and then call Minuit commands to minimize and calculate error bounds, etc.  Minimization depends on the initial state, so repeated invocations of the algorithms can lead to different results.
+
+The Minuit object has a small number of functions, and communicates through its member attributes.  Some of these attributes are read-only fit results and others are editable user settings.
+
+## Minuit member functions ##
+
+### Constructor: Minuit(function[, starting-values...]) ###
+
+To create a Minuit object, you must pass it a Python function.  Python functions may be defined in two ways:
+  * as an inline lambda expression,
+```
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2)
+```
+
+  * or as a multi-line function with the full Python syntax.
+```
+>>> def f(x, y):
+...     if 0.5 < x < 0.6: raise Exception
+...     return x**2 + y**2
+... 
+>>> m = minuit.Minuit(f)
+```
+The former is quicker to type and the latter offers more flexibility.
+
+The function must accept _N_>0 numerical arguments and return 1 numerical result.  All parameters will be passed as Python `floats` (double-precision in C).
+
+Be careful of integer division inside your function.  If numbers are not explicitly `floats`, division can lead to some unexpected results:
+```
+>>> 1/2
+0
+>>> 1./2.
+0.5
+>>> float(1)/2
+0.5
+>>> 1/float(2)
+0.5
+```
+
+One way to be sure that integer division is never used in a Python script is to "import division from future":
+```
+>>> from __future__ import division
+>>> 1/2
+0.5
+```
+
+The function is stored as `m.fcn` and the parameter names as a tuple attribute `m.parameters` (assuming the Minuit object is called `m`.).  They are constants and cannot be changed (without creating a new Minuit object).
+
+You can also pass initial values in the Minuit constructor as Python keyword arguments.  For instance,
+```
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2, x=5, y=5)
+```
+would start both parameters with values of 5.  The values are stored in a dictionary attribute `m.values`.
+```
+>>> m.values["x"], m.values["y"]
+(5.0, 5.0)
+>>> m.values["x"] = 6
+>>> m.values
+{'y': 5.0, 'x': 6.0}
+```
+
+Initial parameter errors are interpreted as starting step-sizes for the minimum search.  You can set them in the constructor by prepending each parameter name with `err_`.
+```
+>>> m = minuit.Minuit(lambda x, y: x**2 + y**2, x=5, y=5, err_x=1, err_y=1)
+>>> m.errors["x"], m.errors["y"]
+(1.0, 1.0)
+```
+
+The most important thing for finding the correct function minimum is to intelligently set the parameter errors.  For instance, in a Gaussian fit, it can be very helpful to set the area, centroid, and sigma to the histogram integral, mean, and standard deviation before fitting.
+
+To fix some parameters, that is, refuse to let them vary in the minimization, in the constructor, prepend the parameter names with `fix_`.
+```
+>>> m = minuit.Minuit(f, fix_x=True, fix_y=False)
+>>> m.fixed
+{'y': False, 'x': True}
+```
+By default, parameters are not fixed.
+
+To limit the domain of some parameters, prepend the parameter names with `limit_` and pass a (low, high) pair.
+```
+>>> m = minuit.Minuit(f, limit_x=(3, 4), limit_y=(5, 1e12))
+>>> m.limits
+{'y': (5.0, 1000000000000.0), 'x': (3.0, 4.0)}
+```
+
+### migrad() ###
+
+Runs Minuit's famous MIGRAD algorithm, an optimized gradient-based minimum search.  This function's behavior is affected by the following Minuit data members.  (You can set parameters like this:
+```
+>>> m.up = 0.5
+```
+and check them by printing `m.up`, for example.)
+
+| `values` | initial starting values |
+|:---------|:------------------------|
+| `errors` | initial step sizes |
+| `fixed` | parameters held constant |
+| `limits` | (low, high) limits on parameter domain |
+| `maxcalls` | maximum allowed number of calls (or `None`) |
+| `tol` | tolerance: minimization succeeds when `edm` is less than `0.001*tol*up` |
+| `strategy` | 0 = fast, 1 = default, 2 = thorough |
+| `up` | scale factor for 1-sigma errors (1 for chi<sup>2</sup>, 0.5 for -log likelihood) |
+| `printMode` | 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step |
+
+This function sets the following Minuit data members.  (You can check them by printing `m.values`, for example.)
+| `values` | parameter values which minimize the function |
+|:---------|:---------------------------------------------|
+| `args` | parameter values as an ordered tuple, for evaluation like `f(*m.args)` |
+| `errors` | variations in parameters which raise the function value by `up` |
+| `covariance` | the full covariance matrix (second derivative) at the minimum |
+| `fval` | function value at the minimum |
+| `ncalls` | number of times the function was called by MIGRAD; known as NFCN in FORTRAN Minuit |
+| `edm` | estimated vertical distance to the minimum ("vertical" refers to the space of function output values) |
+
+The `minos()` function does not guarantee the correctness of `errors` and `covariance`: they are taken from the best-fit paraboloid in the last step of minimization.  For careful error estimates, call `hesse()`.
+
+If the MIGRAD algorithm fails, `migrad()` will throw a `MinuitError` exception.
+
+### simplex() ###
+
+Runs Minuit's less-famous SIMPLEX algorithm.  This also minimizes functions, so it takes all the same inputs as `migrad()`.  The only difference, apart from the relative performance of the algorithms, is that SIMPLEX does not calculate a covariance matrix, so `covariance` will still be `None` after invocation.
+
+### hesse() ###
+
+Run's Minuit's HESSE algorithm for calculating a Hessian covariance matrix of second derivatives at the current parameter values.  If applied after `migrad()`, these are the values needed to raise the function's value by one sigma (defined by `up`), assuming that the function is parabolic near the minimum.
+
+This function's behavior is affected by
+| `values` | point in parameter space at which to calculate the covariance matrix |
+|:---------|:---------------------------------------------------------------------|
+| `errors` | initial step sizes |
+| `fixed` | parameters held constant (not included in covariance) |
+| `limits` | (low, high) limits on parameter domain |
+| `maxcalls` | maximum allowed number of calls (or `None`) |
+| `tol` | tolerance for numerical precision |
+| `strategy` | 0 = fast, 1 = default, 2 = thorough |
+| `up` | scale factor for 1-sigma errors (1 for chi<sup>2</sup>, 0.5 for -log likelihood) |
+| `printMode` | 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step |
+
+This function sets the following
+| `errors` | variations in parameters which raise the function value by `up` |
+|:---------|:----------------------------------------------------------------|
+| `covariance` | the full covariance matrix (second derivative) at the minimum |
+| `ncalls` | number of times the function was called by HESSE; known as NFCN in FORTRAN Minuit |
+
+If the HESSE algorithm fails, `hesse()` will throw a `MinuitError` exception.
+
+### minos() or minos(param, sigmas) ###
+
+If a function is not parabolic near the minimum (where "near" means on the scale of one sigma), `hesse()` errors will be incorrect.  For a full non-linear (or really, "non-parabolic") error calculation, run `minos()`.  This calls Minuit's MINOS algorithm.  The `minos` function must be called _after_ successful minimization.
+
+The `minos` function has two calling patterns: one with no arguments, and another with two.  The no-argument pattern simply calls `minos(param, sigmas)` for each parameter at -1 and 1 sigma.
+| `param` | the name of the parameter whose full error we wish to calculate |
+|:--------|:----------------------------------------------------------------|
+| `sigmas` | the "number of sigmas" distance and direction from the minimum, usually -1 or 1 |
+A call for `minos("x", 2)` will raise parameter _x_ until the function value increases by 2<sup>2</sup> times `up`.  If the minimization represents a statistical fit, this is the 95% confidence level.  A call for `minos("x", -2)` will lower _x_ until the same condition is met.
+
+This function's behavior is affected by
+| `values` | the location of the function minimum |
+|:---------|:-------------------------------------|
+| `errors` | parabolic errors: an initial guess |
+| `fixed` | parameters held constant |
+| `limits` | (low, high) limits on parameter domain |
+| `maxcalls` | maximum allowed number of calls (or `None`) |
+| `tol` | tolerance for numerical precision |
+| `strategy` | 0 = fast, 1 = default, 2 = thorough |
+| `up` | scale factor for 1-sigma errors (1 for chi<sup>2</sup>, 0.5 for -log likelihood) |
+| `printMode` | 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step |
+
+This function sets the following
+| `merrors` | dictionary from parameter-number of sigma pairs to the MINOS result |
+|:----------|:--------------------------------------------------------------------|
+| `ncalls` | number of times the function was called by MINOS; known as NFCN in FORTRAN Minuit |
+
+Note that `migrad` does _not_ change the `errors` attribute.  You can keep track of both error estimations.
+
+If MINOS finds a new minimum, it will raise a `MinuitError` exception with a message of the form
+```
+"Discovered a new minimum at %s = %g"
+```
+where `%s` is the parameter name and `%g` is its better-optimized value.  All other MINOS errors will also raise `MinuitError` exceptions.
+
+### contour(param1, param2, sigmas[, npoints]) ###
+
+Identifies a 2-dimensional curve in parameters `param1` and `param2` which correspond to `sigmas` sigmas from the minimum.  This corresponds to FORTRAN Minuit's CONTOUR, and is a 2-dimensional version of MINOS: the curve is not necessarily a perfect ellipse.
+
+| `param1` | the name of the first parameter |
+|:---------|:--------------------------------|
+| `param2` | the name of the second parameter |
+| `sigmas` | the "number of sigmas" distance from the minimum in which to search for the minimum |
+| `npoints` | (default is 20) an _approximate_ number of points to calculate |
+
+This function's behavior is affected by
+| `values` | the location of the function minimum |
+|:---------|:-------------------------------------|
+| `errors` | parabolic errors: an initial guess |
+| `fixed` | parameters held constant |
+| `limits` | (low, high) limits on parameter domain |
+| `maxcalls` | maximum allowed number of calls (or `None`) |
+| `tol` | tolerance for numerical precision |
+| `strategy` | 0 = fast, 1 = default, 2 = thorough |
+| `up` | scale factor for 1-sigma errors (1 for chi<sup>2</sup>, 0.5 for -log likelihood) |
+| `printMode` | 0 = print nothing, 1 = print call-by-call parameter values, 2 = differences from starting point, 3 = differences from previous step |
+
+Rather than setting Minuit object attributes to communicate the result, this function returns a list of 2-tuples: points in `param1`-`param2` space corresponding to the contour line.  You can pass such a curve to your favorite plotting package.  It does, however, set the `ncalls` attribute.
+
+### scan((param, bins, low, high), ...[, corners[, output]]) ###
+
+The `scan` function does not call any Minuit functions; it is implemented in PyMinuit.  It calculates function values along a lattice in parameter space.  This is a very expensive operation if the objective function is slow to compute, but it can be helpful in finding starting values to seed the minimization.  The argument list consists of a variable number of 4-tuples, each of which represents a parameter to vary.
+| `param` | the parameter name |
+|:--------|:-------------------|
+| `bins` | the number of subdivisions to evaluate |
+| `low` | the low edge of the region to evaluate |
+| `high` | the high edge of the region to evaluate |
+
+For example,
+```
+>>> m.scan(("x", 10, 0, 1), ("y", 5, -20, 20))
+```
+scans a rectangle 10-bins wide in `"x"` from `x=0` to `x=1` and 5-bins wide in `"y"` from `y=-20` to `y=20`, for a total of 10 times 5 = 50 function evaluations.  This function sets two Minuit object attributes.
+| `values` | parameter values which minimize the function |
+|:---------|:---------------------------------------------|
+| `fval` | function value at the minimum |
+| `ncalls` | number of times the function was called |
+
+Two arguments can be passed as keyword arguments to the function.
+| `corners` | (default is `False`) if `True`, calculate the left edges of each bin, rather than the centers |
+|:----------|:----------------------------------------------------------------------------------------------|
+| `output` | (default is `True`) if `False`, suppress output |
+
+By default, this function outputs a list-of-lists of evaluated function values which can be plotted as a density map in your favorite plotting package.
+
+### matrix([correlation[, skip\_fixed]]) ###
+
+The `migrad()` and `hesse()` functions set the `covariance` attribute as a dictionary of parameter name pairs to matrix elements so that the user can safely find off-diagonal elements by parameter name, rather than by index.  But sometimes, it is useful to have the covariance matrix in the traditional form: a square array of numbers.  This function formats the covariance matrix as a tuple-of-tuples and returns it: no Minuit object attributes are modified.
+
+Two parameters are optional.
+| `correlation` | (default is `False`) if `True`, calculate the correlation matrix instead of the covariance matrix |
+|:--------------|:--------------------------------------------------------------------------------------------------|
+| `skip_fixed` | (default is `False`) if `True`, skip rows and columns corresponding to fixed parameters |
+
+The correlation matrix is a normalized covariance matrix.  Each element `cor[i][j]` in the corrleation matrix is equal to `cov[i][j]/sqrt(cov[i][i])/sqrt(cov[j][j])` in the covariance matrix.
+
+All elements related to a fixed parameter are zero.
+
+## Minuit constants ##
+
+These Minuit object attributes are read-only and never change.
+
+### fcn ###
+
+The objective function to be minimized.  If you discard the function used to create the Minuit object, it won't be deleted because the Minuit object maintains this reference to it.
+```
+>>> def f(x,y): return x**2 + y**2
+... 
+>>> m = minuit.Minuit(f)
+>>> f = None
+>>> m.minos()   # not an error, because
+>>> f.fcn
+<function f at 0xb7dc0d84>
+```
+
+This function has been called FCN since days of yore.
+
+### parameters ###
+
+A list of parameter names referenced by Minuit.  It is exactly the argument list (in the same order) as the objective function, extracted through a little Python magic.
+
+```
+>>> def f(x,y): return x**2 + y**2
+... 
+>>> m = minuit.Minuit(f)
+>>> m.parameters
+('x', 'y')
+```
+
+## Minuit results ##
+
+These Minuit object attributes can be changed by calls to Minuit algorithms.
+
+### values ###
+
+A dictionary from parameter names to their current values.  Dictionaries can be viewed all at once or parameter-by-parameter using square brackets.  The order is not guaranteed if viewed all at once.
+```
+>>> m.values
+{'y': 3.0, 'x': 4.0}
+>>> m.values["x"]
+4.0
+>>> m.values["y"] = 10
+>>> m.values
+{'y': 10.0, 'x': 4.0}
+```
+
+As illustrated by the above example, you can set entries of `values` by hand to try to improve the starting point for a minimization algorithm.
+
+You are free to add keys to this dictionary which don't correspond to any parameters at your own peril (risk of confusing yourself).  PyMinuit will ignore any entries which do not correspond to parameter names.
+
+### args ###
+
+A read-only tuple of the current values which can be passed as arguments to your function.  The following example illustrates its use:
+```
+>>> def f(x, a, b): return a*x + b
+...
+>>> data = [(1,1), (2,2), (3,4), (4,5)]
+>>> def chi2(a, b):
+...     s = 0.
+...     for x, y in data:
+...         theory = f(x, a, b)
+...         s += (theory - y)**2
+...     return s
+...
+>>> m = minuit.Minuit(chi2, b=5, a=10)
+>>> m.values
+{'a': 10.0, 'b': 5.0}
+>>> m.args
+(10.0, 5.0)
+>>> m.migrad()
+>>> m.values
+{'a': 1.3999999999987338, 'b': -0.50000000000329692}
+>>> m.args
+(1.3999999999987338, -0.50000000000329692)
+>>> for x in (1, 2, 3, 4):
+...     print x, f(x, *m.args)
+...
+1 0.899999999995
+2 2.29999999999
+3 3.69999999999
+4 5.09999999999
+```
+
+### errors ###
+
+A dictionary from parameter names to their current errors or step sizes.  See notes for `values`.
+
+### fval ###
+
+The smallest value of the function determined by the previous algorithm (not cumulative).  This attribute is read-only, and will be `None` before any algorithms have been run.
+
+### covariance ###
+
+The covariance matrix, expressed as a dictionary from parameter name pairs to covariance elements.  This attribute is read-only, and will be `None` before any algorithms have been run.
+
+Here is an example of an identity covariance matrix:
+```
+>>> m.covariance
+{('y', 'x'): 0.0, ('x', 'y'): 0.0, ('y', 'y'): 1.0, ('x', 'x'): 1.0}
+>>> m.covariance["x", "x"]
+1.0
+>>> m.covariance["x", "y"]
+0.0
+```
+
+To access the covariance (or correlation) in matrix form, see the `matrix()` function.
+
+### merrors ###
+
+A dictionary mapping parameter-sigmas pairs to `minos` results.  This attribute is read-only, and will be `None` before `minos` is run.  It is cumulative, containing all MINOS errors calculated so far.  For instance,
+```
+>>> m.minos()
+>>> m.merrors
+{('y', 1.0): 1.0, ('y', -1.0): -1.0, ('x', -1.0): -1.0, ('x', 1.0): 1.0}
+>>> m.minos("y", 2)
+>>> m.merrors
+{('y', 1.0): 1.0, ('y', -1.0): -1.0, ('x', -1.0): -1.0, ('x', 1.0): 1.0, ('y', 2.0): 2.0}
+```
+
+### ncalls ###
+
+The number of calls made by the previous Minuit algorithm, assuming that it did not fail with an exception.  It is read-only, and will be 0 before any algorithms have been run.
+
+### edm ###
+
+The estimated vertical distance from the minimum, where "vertical" means the space of function output values.  The definition of a successful minimization is one in which `edm` is less than `0.001*tol*up`.
+
+## Minuit user settings ##
+
+These Minuit object attributes are set only by the user and control the function of the Minuit algorithms.
+
+### fixed ###
+
+A dictionary mapping parameter names to `True` or `False`.  If `True`, the parameter will be held constant during all operations: minimization and error measurements.  By default, all parameters float (`fixed["param"] = False`).
+
+### limits ###
+
+A dictionary mapping parameter names to (low, high) pairs or `None`.  Minuit will not allow a parameter value to float outside this range during any operation: minimization or error measurements.  By default, all parameters have no limits (`limits["param"] = None`).
+
+### maxcalls ###
+
+The maximum number of function calls Minuit is allowed to apply to find the minimum or measure an error.  If `None` (the default), Minuit call the function as often as it likes.
+
+### tol ###
+
+The numerical tolerance, by default 0.1.  Minimization is successful when the estimated vertical distance to the minimum is `0.001*tol*up`, in other words, a hundredth of a percent of the physical error on the parameter.
+
+### strategy ###
+
+An integer which tells Minuit how hard to work when it searches for a minimum.  A value of 0 is a fast search, in which Minuit is more scrupulous about minimizing function calls.  A value of 1 is the default, and a value of 2 is the most thorough: the most accurate results and the largest number of function calls.
+
+### up ###
+
+The `up` parameter represents the vertical distance corresponding to one sigma errors.  In statistics applications, `up=1` is appropriate for chi<sup>2</sup> fits and `up=0.5` is for negative log likelihood fits.
+
+### printMode ###
+
+As a PyMinuit feature, you can monitor the progress of the function minimization on a function call-by-call basis with `printMode`.
+| `printMode=0` | (the default) no output |
+|:--------------|:------------------------|
+| `printMode=1` | print `fcn` and parameter values at each function call |
+| `printMode=2` | print `fcn` and differences in the parameter values relative to the first call |
+| `printMode=3` | print `fcn` and differences in the parameter values relative to the previous call |
+
+Here are examples of the three modes for a simple function.
+
+First `printMode=1`
+```
+>>> m = minuit.Minuit(lambda x, y: (x-1)**2 + (y-2)**2, x=3, y=4)
+>>> m.printMode = 1
+>>> m.migrad()
+  FCN Result | Parameter values
+-------------+--------------------------------------------------------
+           8 |            3            4
+       8.004 |        3.001            4
+       7.996 |        2.999            4
+     8.00586 |      3.00146            4
+     7.99414 |      2.99854            4
+       8.004 |            3        4.001
+       7.996 |            3        3.999
+     8.00586 |            3      4.00146
+     7.99414 |            3      3.99854
+ 4.24755e-18 |            1            2
+ 2.38419e-07 |      1.00049            2
+ 2.38418e-07 |     0.999512            2
+ 2.38421e-07 |            1      2.00049
+ 2.38417e-07 |            1      1.99951
+ 4.24755e-18 |            1            2
+ 2.38419e-07 |      1.00049            2
+ 2.38418e-07 |     0.999512            2
+ 2.38421e-07 |            1      2.00049
+ 2.38417e-07 |            1      1.99951
+ 9.53677e-09 |       1.0001            2
+ 9.53671e-09 |     0.999902            2
+ 9.53714e-09 |            1       2.0001
+ 9.53634e-09 |            1       1.9999
+ 4.76839e-07 |      1.00049      2.00049
+```
+Now `printmode=2`
+```
+>>> m = minuit.Minuit(lambda x, y: (x-1)**2 + (y-2)**2, x=3, y=4)
+>>> m.printMode = 2
+>>> m.migrad()
+  FCN Result | Differences in parameter values from initial
+-------------+--------------------------------------------------------
+           8 |            0            0
+       8.004 |        0.001            0
+       7.996 |       -0.001            0
+     8.00586 |   0.00146484            0
+     7.99414 |  -0.00146484            0
+       8.004 |            0        0.001
+       7.996 |            0       -0.001
+     8.00586 |            0   0.00146484
+     7.99414 |            0  -0.00146484
+ 4.24755e-18 |           -2           -2
+ 2.38419e-07 |     -1.99951           -2
+ 2.38418e-07 |     -2.00049           -2
+ 2.38421e-07 |           -2     -1.99951
+ 2.38417e-07 |           -2     -2.00049
+ 4.24755e-18 |           -2           -2
+ 2.38419e-07 |     -1.99951           -2
+ 2.38418e-07 |     -2.00049           -2
+ 2.38421e-07 |           -2     -1.99951
+ 2.38417e-07 |           -2     -2.00049
+ 9.53677e-09 |      -1.9999           -2
+ 9.53671e-09 |      -2.0001           -2
+ 9.53714e-09 |           -2      -1.9999
+ 9.53634e-09 |           -2      -2.0001
+ 4.76839e-07 |     -1.99951     -1.99951
+```
+And now `printMode=3`
+```
+>>> m = minuit.Minuit(lambda x, y: (x-1)**2 + (y-2)**2, x=3, y=4)
+>>> m.printMode = 3
+>>> m.migrad()
+  FCN Result | Differences in parameter values from the previous
+-------------+--------------------------------------------------------
+           8 |            0            0
+       8.004 |        0.001            0
+       7.996 |       -0.002            0
+     8.00586 |   0.00246484            0
+     7.99414 |  -0.00292969            0
+       8.004 |   0.00146484        0.001
+       7.996 |            0       -0.002
+     8.00586 |            0   0.00246484
+     7.99414 |            0  -0.00292969
+ 4.24755e-18 |           -2     -1.99854
+ 2.38419e-07 |  0.000488281            0
+ 2.38418e-07 | -0.000976562            0
+ 2.38421e-07 |  0.000488281  0.000488281
+ 2.38417e-07 |            0 -0.000976562
+ 4.24755e-18 |            0  0.000488281
+ 2.38419e-07 |  0.000488281            0
+ 2.38418e-07 | -0.000976562            0
+ 2.38421e-07 |  0.000488281  0.000488281
+ 2.38417e-07 |            0 -0.000976562
+ 9.53677e-09 |  9.76562e-05  0.000488281
+ 9.53671e-09 | -0.000195312            0
+ 9.53714e-09 |  9.76562e-05  9.76562e-05
+ 9.53634e-09 |            0 -0.000195312
+ 4.76839e-07 |  0.000488281  0.000585937
+```
+
+_C'est tout!  Bonne nuit!_
+
