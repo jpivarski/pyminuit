@@ -4,7 +4,9 @@ Automatically exported from code.google.com/p/pyminuit
 
 ## PyMinuit - Minuit numerical function minimization in Python
 
-*Before you start:* note that PyMinuit has been re-written by Piti Ongmongkolkul for modern systems, yet with a very similar interface: the project is called iminuit (https://github.com/iminuit/iminuit).  PyMinuit is over 6 years old with little development since the initial product.  If PyMinuit doesn't work on your newfangled operating system or you want better IPython or Cython integration (or just the satisfaction of using actively maintained code), try iminuit.
+**Before you start:** note that PyMinuit has been re-written by Piti Ongmongkolkul for modern systems, yet with a very similar interface: the project is called iminuit (https://github.com/iminuit/iminuit).  PyMinuit is over 6 years old with little development since the initial product.  If PyMinuit doesn't work on your newfangled operating system or you want better IPython or Cython integration (or just the satisfaction of using actively maintained code), try iminuit.
+
+**Update in 2015:** Guys, PyMinuit is ancient. I'm leaving it online because no software should ever become inaccessible (who knows? you might need it for some compatibility reason), but any new work should use iminuit (see above). If you're already familiar with the way PyMinuit works, you're in luck: iminuit has the same interface. They're having trouble [consolidating adoption](https://github.com/iminuit/iminuit/issues/156) because of the split between PyMinuit (based on SEAL-Minuit), PyMinuit2 (based on Minuit2), and iminuit (the only modern one in the bunch), but that shouldn't be the case. For all normal work, use iminuit!
 
 ## Minuit
 
